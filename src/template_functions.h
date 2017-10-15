@@ -1,5 +1,6 @@
 /*
  * template_functions.h
+ * https://github.com/dafky2000/simplectemplate
  * Provides HTML template functionality for https://github.com/andy5995/mhwkb
  *
  * Copyright 2017 Daniel Kelly <myself@danielkelly.me>

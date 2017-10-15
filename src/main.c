@@ -1,5 +1,6 @@
 /*
  * main.c
+ * https://github.com/dafky2000/simplectemplate
  * Some examples for using simplectemplate
  *
  * Copyright 2017 Daniel Kelly <myself@danielkelly.me>
