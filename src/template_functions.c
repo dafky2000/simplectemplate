@@ -24,11 +24,25 @@
  */
 
 #include "template_functions.h"
+#ifdef _WIN32
+#include "windows.h"
+#endif
 
 int exists (const char *filename)
 {
-  struct stat st;
-  return (lstat (filename, &st));
+  #ifdef linux
+    struct stat st;
+    return (lstat (filename, &st));
+  #endif
+
+  #ifdef _WIN32
+    LPCTSTR name = filename;
+    GET_FILEEX_INFO_LEVELS fInfoLevelId = GetFileExInfoStandard;
+    WIN32_FILE_ATTRIBUTE_DATA InfoFile; 
+    /* GetFileAttributesEx returns 0 on fail */
+    return GetFileAttributesEx(name,fInfoLevelId,&InfoFile) != 0 ? 0 : -1;
+  #endif
+    return -1;
 }
 
 char* read_file_contents (const char *filename)
