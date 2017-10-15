@@ -2,7 +2,6 @@ TARGET = simplectemplate
 LIBS = -lm
 CC = gcc
 CFLAGS = -Wall
-
 .PHONY: default all clean
 
 default: $(TARGET)
