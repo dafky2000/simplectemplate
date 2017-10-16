@@ -25,15 +25,18 @@
 #include <stdio.h>
 #include "template_functions.h"
 
-int main ()
-{
-  const char *keys[] = { "title", "body" };
-  const char *values[] = {
-    "My super cool website",
-    "Put whatever you want in the body! Heck, even another rendered template ;)"
-  };
-  char *template = render_template("./templates/index.html", 2, keys, values);
-  printf("%s\n", template);
-  if(template) free(template);
-  return 0;
+int main () {
+	// First setup the key/value pairs
+	const char *keys[] = { "title", "body" };
+	const char *values[] = {
+		"My super cool website",
+		"Put whatever you want in the body! Heck, even another rendered template ;)"
+	};
+
+	// Render the template and replace the template variables
+	char *template = render_template("./templates/index.html", 2, keys, values);
+	printf("%s\n", template);
+
+	if(template) free(template);
+	return 0;
 }

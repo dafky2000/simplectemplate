@@ -24,145 +24,129 @@
  */
 
 #include "template_functions.h"
-#ifdef _WIN32
-#include "windows.h"
+
+int exists(const char* filename) {
+#ifdef linux
+	struct stat st;
+	return (lstat(filename, &st));
 #endif
 
-int exists (const char *filename)
-{
-  #ifdef linux
-    struct stat st;
-    return (lstat (filename, &st));
-  #endif
+#ifdef _WIN32
+	LPCTSTR name = filename;
+	GET_FILEEX_INFO_LEVELS fInfoLevelId = GetFileExInfoStandard;
+	WIN32_FILE_ATTRIBUTE_DATA InfoFile; 
+	/* GetFileAttributesEx returns 0 on fail */
+	return GetFileAttributesEx(name,fInfoLevelId,&InfoFile) != 0 ? 0 : -1;
+#endif
 
-  #ifdef _WIN32
-    LPCTSTR name = filename;
-    GET_FILEEX_INFO_LEVELS fInfoLevelId = GetFileExInfoStandard;
-    WIN32_FILE_ATTRIBUTE_DATA InfoFile; 
-    /* GetFileAttributesEx returns 0 on fail */
-    return GetFileAttributesEx(name,fInfoLevelId,&InfoFile) != 0 ? 0 : -1;
-  #endif
-  return -1;
+	return -1;
 }
 
-char* read_file_contents (const char *filename)
-{
-  if(exists (filename) != 0)
-    return NULL;
+char* read_file_contents(const char* filename) {
+	if(exists(filename) != 0) return NULL;
 
-  FILE *fp = fopen (filename, "r");
+	// Open ze file
+	FILE* fp = fopen(filename, "r");
+	if(fp == NULL) {
+		perror("failure: open file\n");
+		exit(1);
+	}
 
-  if (fp == NULL)
-  {
-    perror ("failure: open file\n");
-    exit (1);
-  }
+	// Get the content length
+	fseek(fp, 0, SEEK_END);
+	long length = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
 
-  // Get the content length
-  fseek (fp, 0, SEEK_END);
-  long length = ftell (fp);
-  fseek (fp, 0, SEEK_SET);
+	// Get the contents
+	char* contents = malloc(length + 1);
+	memset(contents, 0, length+1);
+	if(fread(contents, 1, length, fp) == 0) {
+		perror("failure: reading file contents\n");
+		exit(1);
+	}
 
-  char *contents = malloc(length + 1);
-  memset(contents, 0, length+1);
+	if(fclose(fp) != 0) {
+		perror("failure: close file\n");
+		exit(1);
+	}
 
-  // Get the contents
-  if(fread (contents, 1, length, fp) == 0)
-  {
-    perror ("failure: reading file contents\n");
-    exit (1);
-  }
-
-  if (fclose (fp) != 0)
-  {
-    perror ("failure: close file\n");
-    exit (1);
-  }
-
-  return contents;
+	return contents;
 }
 
-char *set_template_var(char* template, const char* key, const char* value)
-{
-  int keylen = strlen("{{data.}}") + strlen(key) + 1;
-  char *fullkey = malloc(keylen);
-  memset(fullkey, 0, keylen);
+char* set_template_var(char* template, const char* key, const char* value) {
+	int keylen = strlen("{{data.}}") + strlen(key) + 1;
+	char* fullkey = malloc(keylen);
+	memset(fullkey, 0, keylen);
 
-  strcat(fullkey, "{{data.");
-  strcat(fullkey, key);
-  strcat(fullkey, "}}");
-  char *ret = str_replace(template, fullkey, value);
-  free(fullkey);
-  return ret;
+	strcat(fullkey, "{{data.");
+	strcat(fullkey, key);
+	strcat(fullkey, "}}");
+	char* ret = str_replace(template, fullkey, value);
+	free(fullkey);
+	return ret;
 }
 
-char *render_template(const char* filename, int len, const char *keys[], const char *values[])
+char* render_template(const char* filename, int len, const char* keys[], const char* values[])
 {
-  char *template = read_file_contents(filename);
-  if(template != NULL)
-  {
-    int x = 0;
-    for(x = 0; x < len; ++x)
-    {
-      char *processed = set_template_var(template, keys[x], values[x]);
-      free(template);
-      template = processed;
-    }
+	char* template = read_file_contents(filename);
+	if(template != NULL) {
+		int x = 0;
+		for(x = 0; x < len; ++x) {
+			char* processed = set_template_var(template, keys[x], values[x]);
+			free(template);
+			template = processed;
+		}
 
-    return template;
-  }
-  else
-  {
-    printf("Filename: %s\n", filename);
-    perror ("failure: getting template file contents\n");
-    exit (1);
-  }
+		return template;
+	} else {
+		printf("Filename: %s\n", filename);
+		perror("failure: getting template file contents\n");
+		exit(1);
+	}
 }
 
 // "Stolen" from https://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c
 // You must free the result if result is non-NULL.
-char *str_replace(char *orig, char *rep, const char *with) {
-    char *result; // the return string
-    char *ins;    // the next insert point
-    char *tmp;    // varies
-    int len_rep;  // length of rep (the string to remove)
-    int len_with; // length of with (the string to replace rep with)
-    int len_front; // distance between rep and end of last rep
-    int count;    // number of replacements
+char* str_replace(char *orig, char *rep, const char *with) {
+	char* result;  // the return string
+	char* ins;     // the next insert point
+	char* tmp;     // varies
+	int len_rep;   // length of rep (the string to remove)
+	int len_with;  // length of with (the string to replace rep with)
+	int len_front; // distance between rep and end of last rep
+	int count;     // number of replacements
 
-    // sanity checks and initialization
-    if (!orig || !rep)
-        return NULL;
-    len_rep = strlen(rep);
-    if (len_rep == 0)
-        return NULL; // empty rep causes infinite loop during count
-    if (!with)
-        with = "";
-    len_with = strlen(with);
+	// sanity checks and initialization
+	if(!orig || !rep) return NULL;
 
-    // count the number of replacements needed
-    ins = orig;
-    for (count = 0; (tmp = strstr(ins, rep)); ++count) {
-        ins = tmp + len_rep;
-    }
+	len_rep = strlen(rep);
+	if(len_rep == 0) return NULL; // empty rep causes infinite loop during count
 
-    tmp = result = malloc(strlen(orig) + (len_with - len_rep) * count + 1);
+	if(!with) with = "";
+	len_with = strlen(with);
 
-    if (!result)
-        return NULL;
+	// count the number of replacements needed
+	ins = orig;
+	for(count = 0; (tmp = strstr(ins, rep)); ++count) {
+		ins = tmp + len_rep;
+	}
 
-    // first time through the loop, all the variable are set correctly
-    // from here on,
-    //    tmp points to the end of the result string
-    //    ins points to the next occurrence of rep in orig
-    //    orig points to the remainder of orig after "end of rep"
-    while (count--) {
-        ins = strstr(orig, rep);
-        len_front = ins - orig;
-        tmp = strncpy(tmp, orig, len_front) + len_front;
-        tmp = strcpy(tmp, with) + len_with;
-        orig += len_front + len_rep; // move to next "end of rep"
-    }
-    strcpy(tmp, orig);
-    return result;
+	tmp = result = malloc(strlen(orig) + (len_with - len_rep) * count + 1);
+
+	if(!result) return NULL;
+
+	// first time through the loop, all the variable are set correctly from here on,
+	//    tmp points to the end of the result string
+	//    ins points to the next occurrence of rep in orig
+	//    orig points to the remainder of orig after "end of rep"
+	while(count--) {
+			ins = strstr(orig, rep);
+			len_front = ins - orig;
+			tmp = strncpy(tmp, orig, len_front) + len_front;
+			tmp = strcpy(tmp, with) + len_with;
+			orig += len_front + len_rep; // move to next "end of rep"
+	}
+	strcpy(tmp, orig);
+
+	return result;
 }
