@@ -19,6 +19,9 @@ HEADERS = $(wildcard src/*.h)
 $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
 
+test: $(TARGET)
+	-./simplectemplate
+
 clean:
 	-rm -f src/*.o
 	-rm -f $(TARGET)
