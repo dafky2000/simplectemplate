@@ -100,29 +100,13 @@ char* render_template(const char* template_data, int len, const char* keys[], co
 			free(template);
 			template = processed;
 		}
-
-		return template;
 	}
 
-  return NULL;
+  return template;
 }
 
 char* render_template_file(const char* filename, int len, const char* keys[], const char* values[]) {
-	char* template = read_file_contents(filename);
-	if(template != NULL) {
-		int x = 0;
-		for(x = 0; x < len; ++x) {
-			char* processed = set_template_var(template, keys[x], values[x]);
-			free(template);
-			template = processed;
-		}
-
-		return template;
-	} else {
-		printf("Filename: %s\n", filename);
-		perror("failure: getting template file contents\n");
-		exit(1);
-	}
+  return render_template(read_file_contents(filename), len, keys, values);
 }
 
 // "Stolen" from https://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c
