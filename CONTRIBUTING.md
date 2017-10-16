@@ -4,13 +4,10 @@ When contributing to this repository, please first discuss the change you wish t
 
 Please note we have a Pull Request Process, please follow it in all your interactions with the project.
 
-## Pull Request Process
+## Fixing issues and Pull Request Process
 
 * Creating a new branch off of the develop branch
-* All changes to the code should have appropriate unit tests
-* All code should match PSR-2 style
 * Submit a pull request again develop as the base branch
-* All travis checks will need to pass
 #### **Did you find a bug?**
 
 
@@ -28,11 +25,6 @@ Please note we have a Pull Request Process, please follow it in all your interac
 
 * Ensure the PR description clearly describes the problem and solution. Include the relevant issue number if applicable.
 
-
-#### **Do you intend to add a new feature or change an existing one?**
-
-
-* Do not open an issue on GitHub until you have collected positive feedback about the change. GitHub issues are primarily intended for bug reports and fixes.
 
 
 #### **Do you have questions about the source code?**
