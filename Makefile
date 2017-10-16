@@ -1,6 +1,6 @@
 TARGET = simplectemplate
 LIBS = -lm
-CC = gcc
+CC ?= gcc # Use gcc if CC is undefined
 CFLAGS = -Wall
 
 .PHONY: default all clean
