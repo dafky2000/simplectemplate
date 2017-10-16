@@ -1,20 +1,19 @@
+language: c
 script: make
-
-# blocklist
-#branches:
-#  except:
-#  - legacy
-#  - experimental
+compiler:
+  - cc
+  - gcc
+  - clang
 
 # safelist
 branches:
   only:
-  - master
+    - master
+    - develop
 
 notifications:
   webhooks:
     urls:
-#     - https://hooks.slack.com/services/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
-    on_success: always  # options: [always|never|change] default: always
-    on_failure: always  # options: [always|never|change] default: always
-    on_start: never     # options: [always|never|change] default: always
+      on_success: always  # options: [always|never|change] default: always
+      on_failure: always  # options: [always|never|change] default: always
+      on_start: never     # options: [always|never|change] default: always
