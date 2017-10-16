@@ -86,8 +86,28 @@ char* set_template_var(char* template, const char* key, const char* value) {
 	return ret;
 }
 
-char* render_template(const char* filename, int len, const char* keys[], const char* values[])
-{
+char* render_template(const char* template_data, int len, const char* keys[], const char* values[]) {
+  int template_length = strlen(template_data) + 1;
+  char* template = malloc(template_length);
+  memset(template, 0, template_length);
+
+  strcpy(template, template_data);
+
+	if(template != NULL) {
+		int x = 0;
+		for(x = 0; x < len; ++x) {
+			char* processed = set_template_var(template, keys[x], values[x]);
+			free(template);
+			template = processed;
+		}
+
+		return template;
+	}
+
+  return NULL;
+}
+
+char* render_template_file(const char* filename, int len, const char* keys[], const char* values[]) {
 	char* template = read_file_contents(filename);
 	if(template != NULL) {
 		int x = 0;
