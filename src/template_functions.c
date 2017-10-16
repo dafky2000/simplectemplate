@@ -33,7 +33,7 @@ int exists (const char *filename)
 
 char* read_file_contents (const char *filename)
 {
-  if(exists (filename) != 0) 
+  if(exists (filename) != 0)
     return NULL;
 
   FILE *fp = fopen (filename, "r");
@@ -105,7 +105,7 @@ char *render_template(const char* filename, int len, const char *keys[], const c
 
 // "Stolen" from https://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c
 // You must free the result if result is non-NULL.
-char *str_replace(char *orig, char *rep, char *with) {
+char *str_replace(char *orig, char *rep, const char *with) {
     char *result; // the return string
     char *ins;    // the next insert point
     char *tmp;    // varies
@@ -126,7 +126,7 @@ char *str_replace(char *orig, char *rep, char *with) {
 
     // count the number of replacements needed
     ins = orig;
-    for (count = 0; tmp = strstr(ins, rep); ++count) {
+    for (count = 0; (tmp = strstr(ins, rep)); ++count) {
         ins = tmp + len_rep;
     }
 
