@@ -1,12 +1,16 @@
 # How to contribute to simplectemplate
 
-When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
+First of all, thank you for taking the time to contribute to this project. We're trying to make a stable project and try to fix bugs and add new features continuously. You can help us do more.
+
+If there is a bug or a feature that is not listed in the **issues** page or there is no one assigned to the issue, feel free to fix/add it! Please discuss the change you wish to make first via issue, email, or any other method with the owners of this repository before making a change. This is not **required** but users who discuss will take priority over those who simply submit a pull request.
 
 Please note we have a Pull Request Process, please follow it in all your interactions with the project.
 
 ## Fixing issues and Pull Request Process
 
-* Creating a new branch off of the develop branch
+* Fork this report
+* Creating a new feature / bug branch based off the `develop` branch
+* Fix the bug on your feature / bug branch.
 
 ### **Did you find a bug?**
 
@@ -15,11 +19,11 @@ Please note we have a Pull Request Process, please follow it in all your interac
 
 ### **Did you write a patch that fixes a bug?**
 
-* Fix the bug on your feature / bug branch.
-* Follow the project coding style, described below.
+* Ensure your code follows the project coding style, described below.
 * Open a new GitHub pull request with the patch.
 * Ensure the PR description clearly describes the problem and solution. Include the relevant issue number if applicable.
 * Ensure your PR passes the automated Travis CI build process.
+* We will let you know if there is any problem or any changes that should be considered.
 
 ### **Coding Style**
 
@@ -28,6 +32,10 @@ Please note we have a Pull Request Process, please follow it in all your interac
 * All code should follow K&R style, with some caveats:
   * Opening braces should always be on the same line, even on function definitions.
   * You may omit braces for one-line if-statements, else, etc.
+  
+### Documentation
+
+Every chunk of code that may be hard to understand has some comments above it. If you write some new code or change some part of the existing code in a way that it would not be functional without changing it's usages, it needs to be documented.
 
 # **Do you have questions about the source code?**
 
