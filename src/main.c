@@ -34,4 +34,6 @@ int main ()
   };
   char *template = render_template("./templates/index.html", 2, keys, values);
   printf("%s\n", template);
+  if(template) free(template);
+  return 0;
 }

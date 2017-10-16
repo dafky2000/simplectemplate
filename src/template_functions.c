@@ -77,7 +77,9 @@ char *set_template_var(char* template, const char* key, const char* value)
   strcat(fullkey, "{{data.");
   strcat(fullkey, key);
   strcat(fullkey, "}}");
-  return str_replace(template, fullkey, value);
+  char *ret = str_replace(template, fullkey, value);
+  free(fullkey);
+  return ret;
 }
 
 char *render_template(const char* filename, int len, const char *keys[], const char *values[])
