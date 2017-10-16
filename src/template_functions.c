@@ -42,7 +42,7 @@ int exists (const char *filename)
     /* GetFileAttributesEx returns 0 on fail */
     return GetFileAttributesEx(name,fInfoLevelId,&InfoFile) != 0 ? 0 : -1;
   #endif
-    return -1;
+  return -1;
 }
 
 char* read_file_contents (const char *filename)
