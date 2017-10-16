@@ -28,20 +28,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef linux
 #include <sys/stat.h>
+#endif
+#ifdef _WIN32
+#include "windows.h"
+#endif
 
 /**
  * Check if filename exists
  * Usage: if(exists(filename) == 0);
  */
-int exists (const char *filename);
+int exists(const char* filename);
 
 /**
  * Read the contents of a file
  * filename: Relative path of the file to read
  * returns: null-terminated string of the file contents
  */
-char* read_file_contents (const char *filename);
+char* read_file_contents (const char* filename);
 
 /**
  * Performs a str_replace using the correct formatting with just key/value pair
@@ -50,7 +55,7 @@ char* read_file_contents (const char *filename);
  * value: value to replace with
  * returns: Replaced template
  */
-char *set_template_var (char* template, const char* key, const char* value);
+char* set_template_var (char* template, const char* key, const char* value);
 
 /**
  * Render a template with arrays of key/value pairs
@@ -60,7 +65,7 @@ char *set_template_var (char* template, const char* key, const char* value);
  * values: array of const char* values to replace into template
  * returns: rendered template
  */
-char *render_template (const char* filename, int len, const char *keys[], const char *values[]);
+char* render_template (const char* filename, int len, const char* keys[], const char* values[]);
 
 /**
  * Replace all occurances of rep
@@ -69,6 +74,6 @@ char *render_template (const char* filename, int len, const char *keys[], const 
  * with: text to replace with
  * returns: replaced text
  */
-char *str_replace (char *orig, char *rep, const char *with);
+char* str_replace (char* orig, char* rep, const char* with);
 
 #endif
