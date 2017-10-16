@@ -1,4 +1,6 @@
 # simplectemplate
+Master: [![Build Status](https://travis-ci.org/dafky2000/simplectemplate.svg?branch=master)](https://travis-ci.org/dafky2000/simplectemplate)
+Develop: [![Build Status](https://travis-ci.org/dafky2000/simplectemplate.svg?branch=develop)](https://travis-ci.org/dafky2000/simplectemplate)
 Simple C Template library to expand placeholders in a template string, simple alternative to mustache.github.io that doesn't require JSON as data input. The main focus of this project is accessibility, making it easy and fast to hack into any project.
 
 ## Building and running examples / tests
