@@ -28,5 +28,5 @@ test: $(SPECK) $(OBJECTS) $(SUITES)
 
 clean:
 	-rm -f src/*.o
-	-rm -f spec/*.so
+	-rm -f test/*.so
 	-rm -f $(TARGET)

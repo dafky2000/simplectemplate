@@ -1,15 +1,16 @@
-#include <speck.h>
-#include <template_functions.h>
+#include "../speck/speck.h"
+// Any other includes you need
 
-void spec_exists(void)
+void spec_example(void)
 {
-    /* arrange */
-    const char *filename = "index.html";
-    int result = 0;
+  /* arrange */
+  char* filename = malloc(10 + 1);
+  memset(filename, 0, 11);
 
-    /* act */
-    result = exists(filename);
+  /* act */
+  strcat(filename, "index");
+  strcat(filename, ".html");
 
-    /* assert */
-    sp_assert_equal_i(-1, result);
+  /* assert */
+  sp_assert(strcmp(filename, "index.html") == 0);
 }
