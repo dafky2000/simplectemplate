@@ -1,0 +1,3 @@
+[submodule "speck"]
+	path = speck
+	url = https://github.com/compiler-dept/speck.git

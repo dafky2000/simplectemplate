@@ -1,9 +1,9 @@
 TARGET = simplectemplate
-LIBS = -lm
+LDLIBS = -lm
 CC ?= gcc # Use gcc if CC is undefined
 CFLAGS = -Wall
 
-.PHONY: default all clean
+.PHONY: default all test clean
 
 default: $(TARGET)
 all: default
@@ -17,11 +17,16 @@ HEADERS = $(wildcard src/*.h)
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
+	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
-test: $(TARGET)
-	-./simplectemplate
+SPECK_CFLAGS = -Isrc
+SPECK_LDFLAGS =
+SPECK_LIBS = $(OBJECTS) $(LDLIBS)
+-include speck/speck.mk
+test: $(SPECK) $(OBJECTS) $(SUITES)
+	@$(SPECK)
 
 clean:
 	-rm -f src/*.o
+	-rm -f spec/*.so
 	-rm -f $(TARGET)
