@@ -1,7 +1,7 @@
 TARGET = simplectemplate
 LDLIBS = -lm
 CC ?= gcc # Use gcc if CC is undefined
-CFLAGS = -Wall
+CFLAGS = -Wall -fPIC
 
 .PHONY: default all test clean
 
