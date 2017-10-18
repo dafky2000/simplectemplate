@@ -12,7 +12,7 @@ void spec_str_replace1(void)
   /* assert */
   sp_assert(strcmp(replaced, "zzzing Test zzz TEST 123 12 T") == 0);
 
-  if(replaced) free(replaced);
+  /* if(replaced) free(replaced); */
 }
 
 void spec_str_replace2(void)
