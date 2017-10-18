@@ -30,14 +30,14 @@ Please note we have a Pull Request Process, please follow it in all your interac
 
 simplectemplate utilizes [speck](https://github.com/compiler-dept/speck) for unit tests. It is simple and straight forward, please look at `spec/example.c` for some example implementations. All test file and function names should follow the same naming convention `file_name_function_name.c`.
 
-You will also require valgrind for the unit tests as that is part of the testing process.
-
 ```shell
 git clone https://github.com/dafky2000/simplectemplate.git
 git submodule init
 git submodule update
 make test
 ```
+
+You may also run `make full-test` which will also run `valgrind` and verify memory safety.
 
 ### **Coding Style**
 

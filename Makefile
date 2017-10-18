@@ -24,6 +24,8 @@ SPECK_LDFLAGS =
 SPECK_LIBS = $(OBJECTS) $(LDLIBS)
 -include speck/speck.mk
 test: $(SPECK) $(OBJECTS) $(SUITES)
+	@$(SPECK)
+full-test: $(SPECK) $(OBJECTS) $(SUITES)
 	valgrind --leak-check=full --error-exitcode=1 --errors-for-leak-kinds=all $(SPECK)
 
 clean:
