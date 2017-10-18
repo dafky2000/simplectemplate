@@ -84,6 +84,6 @@ char* render_template_file (const char* filename, int len, const char* keys[], c
  * with: text to replace with
  * returns: replaced text
  */
-char* str_replace (char* orig, char* rep, const char* with);
+char* str_replace (char* orig, const char* rep, const char* with);
 
 #endif

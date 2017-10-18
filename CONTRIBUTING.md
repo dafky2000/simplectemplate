@@ -20,10 +20,20 @@ Please note we have a Pull Request Process, please follow it in all your interac
 ### **Did you write a patch that fixes a bug?**
 
 * Ensure your code follows the project coding style, described below.
+* Ensure you have created unit tests for the new code.
 * Open a new GitHub pull request with the patch.
 * Ensure the PR description clearly describes the problem and solution. Include the relevant issue number if applicable.
 * Ensure your PR passes the automated Travis CI build process.
 * We will let you know if there is any problem or any changes that should be considered.
+
+### Running Tests
+
+simplectemplate utilizes [speck](https://github.com/compiler-dept/speck) for unit tests. It is simple and straight forward, please look at example.c for some example implementations.
+
+```shell
+git clone https://github.com/dafky2000/simplectemplate.git
+make test
+```
 
 ### **Coding Style**
 
