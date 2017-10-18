@@ -28,7 +28,7 @@ Please note we have a Pull Request Process, please follow it in all your interac
 
 ### Running Tests
 
-simplectemplate utilizes [speck](https://github.com/compiler-dept/speck) for unit tests. It is simple and straight forward, please look at example.c for some example implementations.
+simplectemplate utilizes [speck](https://github.com/compiler-dept/speck) for unit tests. It is simple and straight forward, please look at `spec/example.c` for some example implementations. All test file and function names should follow the same naming convention `file_name_function_name.c`.
 
 ```shell
 git clone https://github.com/dafky2000/simplectemplate.git
