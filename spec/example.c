@@ -13,4 +13,6 @@ void spec_example(void)
 
   /* assert */
   sp_assert(strcmp(filename, "index.html") == 0);
+  
+  free(filename);
 }

@@ -26,35 +26,17 @@
 #include "template_functions.h"
 
 int main () {
-	// First setup the key/value pairs
-	const char* keys[] = { "title", "body" };
-	const char* values[] = {
-		"My super cool website",
-		"Put whatever you want in the body! Heck, even another rendered template ;)"
-	};
+  const char *keys[] = { "ph1", "ph2", };
+  const char *values[] = {
+    "awesome",
+    " is running",
+  };
 
-  // Render templated text from input string
-  char* text_template = render_template("<!DOCTYPE html>\n\
-<html>\n\
-        <head>\n\
-                <meta charset=\"UTF-8\">\n\
-                <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n\
-                <title>{{data.title}}</title>\n\
-        </head>\n\
-        <body>\n\
-                <h1>{{data.title}}</h1>\n\
-                {{data.body}}\n\
-        </body>\n\
-</html>", 2, keys, values);
-	printf("%s\n===================================\n", text_template);
+  char* rendered = render_template_file("spec/templates/basic.txt", 2, keys, values);
 
-	if(text_template) free(text_template);
+  printf("%s", rendered);
 
-	// Render the template and replace the template variables
-	char* template = render_template_file("./templates/index.html", 2, keys, values);
-	printf("%s\n===================================\n", template);
-
-	if(template) free(template);
+  if(rendered) free(rendered);
 
 	return 0;
 }

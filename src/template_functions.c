@@ -47,30 +47,36 @@ char* read_file_contents(const char* filename) {
 
 	// Open ze file
 	FILE* fp = fopen(filename, "r");
-	if(fp == NULL) {
-		perror("failure: open file\n");
-		exit(1);
-	}
+	if(fp == NULL) return NULL;
 
-	// Get the content length
+  // Get the content length
 	fseek(fp, 0, SEEK_END);
 	long length = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
 	// Get the contents
-	char* contents = malloc(length + 1);
+	char* contents = malloc(length+1);
 	memset(contents, 0, length+1);
-	if(fread(contents, 1, length, fp) == 0) {
-		perror("failure: reading file contents\n");
-		exit(1);
-	}
+
+  fread(contents, 1, length, fp);
 
 	if(fclose(fp) != 0) {
 		perror("failure: close file\n");
 		exit(1);
 	}
+  
+  if(!contents) return contents;
 
-	return contents;
+  // Remove the newline from the end but preserve a valid pointer so we can tell the difference between an "error" (when NULL) and simply an empty file.
+  if(length) {
+    char* removednl = malloc(length);
+    memset(removednl, 0, length);
+    memcpy(removednl, contents, length-1);
+    free(contents);
+    return removednl;
+  }
+
+  return contents;
 }
 
 char* set_template_var(char* template, const char* key, const char* value) {
@@ -106,12 +112,18 @@ char* render_template(const char* template_data, int len, const char* keys[], co
 }
 
 char* render_template_file(const char* filename, int len, const char* keys[], const char* values[]) {
-  return render_template(read_file_contents(filename), len, keys, values);
+  char* contents = read_file_contents(filename);
+  if(!contents) return NULL;
+
+  char* rendered = render_template(contents, len, keys, values);
+  free(contents);
+  
+  return rendered;
 }
 
 // "Stolen" from https://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c
 // You must free the result if result is non-NULL.
-char* str_replace(char *orig, char *rep, const char *with) {
+char* str_replace(char* orig, const char* rep, const char* with) {
 	char* result;  // the return string
 	char* ins;     // the next insert point
 	char* tmp;     // varies
@@ -130,7 +142,7 @@ char* str_replace(char *orig, char *rep, const char *with) {
 	len_with = strlen(with);
 
 	// count the number of replacements needed
-	ins = orig;
+	ins = orig;     // the next insert point
 	for(count = 0; (tmp = strstr(ins, rep)); ++count) {
 		ins = tmp + len_rep;
 	}
