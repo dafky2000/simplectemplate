@@ -1,3 +1,7 @@
-src/*.o
 ./simplectemplate
-spec/*.so
+*.o
+*.so
+*.gc*
+*/*.o
+*/*.so
+*/*.gc*

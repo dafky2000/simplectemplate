@@ -2,9 +2,11 @@ language: c
 before_install:
   - |
       sudo apt-get install -qq valgrind
+  - pip install --user cpp-coveralls
 script:
-  - make
-  - make full-test
+  - make test
+  - make leak-test
+  - make coverage-test
 compiler:
   - cc
   - gcc
