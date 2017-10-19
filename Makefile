@@ -31,7 +31,7 @@ test: $(SPECK) $(OBJECTS) $(SUITES)
 
 coverage-test: $(SPECK) $(OBJECTS) $(SUITES)
 	@$(SPECK)
-	rm -f *.gc*
+	# rm -f *.gc*
 	cpp-coveralls -b . --gcov-options '\-lp'
 
 leak-test: $(SPECK) $(OBJECTS) $(SUITES)
