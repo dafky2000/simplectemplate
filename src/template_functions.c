@@ -49,7 +49,7 @@ char* read_file_contents(const char* filename) {
 	FILE* fp = fopen(filename, "r");
 	if(fp == NULL) return NULL;
 
-  // Get the content length
+	// Get the content length
 	fseek(fp, 0, SEEK_END);
 	long length = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
@@ -58,25 +58,24 @@ char* read_file_contents(const char* filename) {
 	char* contents = malloc(length+1);
 	memset(contents, 0, length+1);
 
-  fread(contents, 1, length, fp);
+	fread(contents, 1, length, fp);
 
-	if(fclose(fp) != 0) {
-		perror("failure: close file\n");
-		exit(1);
+  // No need to check if we fclose properly?
+  // Even if the call fails, the stream passed as parameter will no longer be associated with the file nor its buffers.
+	fclose(fp);
+
+	if(!contents) return contents;
+
+	// Remove the newline from the end but preserve a valid pointer so we can tell the difference between an "error" (when NULL) and simply an empty file.
+	if(length) {
+		char* removednl = malloc(length);
+		memset(removednl, 0, length);
+		memcpy(removednl, contents, length-1);
+		free(contents);
+		return removednl;
 	}
-  
-  if(!contents) return contents;
 
-  // Remove the newline from the end but preserve a valid pointer so we can tell the difference between an "error" (when NULL) and simply an empty file.
-  if(length) {
-    char* removednl = malloc(length);
-    memset(removednl, 0, length);
-    memcpy(removednl, contents, length-1);
-    free(contents);
-    return removednl;
-  }
-
-  return contents;
+	return contents;
 }
 
 char* set_template_var(char* template, const char* key, const char* value) {
@@ -93,11 +92,11 @@ char* set_template_var(char* template, const char* key, const char* value) {
 }
 
 char* render_template(const char* template_data, int len, const char* keys[], const char* values[]) {
-  int template_length = strlen(template_data) + 1;
-  char* template = malloc(template_length);
-  memset(template, 0, template_length);
+	int template_length = strlen(template_data) + 1;
+	char* template = malloc(template_length);
+	memset(template, 0, template_length);
 
-  strcpy(template, template_data);
+	strcpy(template, template_data);
 
 	if(template != NULL) {
 		int x = 0;
@@ -108,17 +107,17 @@ char* render_template(const char* template_data, int len, const char* keys[], co
 		}
 	}
 
-  return template;
+	return template;
 }
 
 char* render_template_file(const char* filename, int len, const char* keys[], const char* values[]) {
-  char* contents = read_file_contents(filename);
-  if(!contents) return NULL;
+	char* contents = read_file_contents(filename);
+	if(!contents) return NULL;
 
-  char* rendered = render_template(contents, len, keys, values);
-  free(contents);
-  
-  return rendered;
+	char* rendered = render_template(contents, len, keys, values);
+	free(contents);
+	
+	return rendered;
 }
 
 // "Stolen" from https://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c

@@ -23,7 +23,7 @@
  */
 
 #include <stdio.h>
-#include "template_functions.h"
+#include "src/template_functions.h"
 
 int main () {
   const char *keys[] = { "ph1", "ph2", };
