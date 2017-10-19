@@ -11,8 +11,8 @@ all: default
 OBJECTS = main.o $(patsubst src/%.c, src/%.o, $(wildcard src/*.c))
 HEADERS = main.c $(wildcard src/*.h)
 
-coverage-test: CFLAGS += -g --coverage
-coverage-test: SPECK_CFLAGS += -coverage
+test: CFLAGS += -g --coverage
+test: SPECK_CFLAGS += -coverage
 
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -26,13 +26,8 @@ SPECK_CFLAGS = -Isrc
 SPECK_LDFLAGS =
 SPECK_LIBS = $(OBJECTS) $(LDLIBS)
 -include speck/speck.mk
+
 test: $(SPECK) $(OBJECTS) $(SUITES)
-	@$(SPECK)
-
-coverage-test: $(SPECK) $(OBJECTS) $(SUITES)
-	@$(SPECK)
-
-leak-test: $(SPECK) $(OBJECTS) $(SUITES)
 	valgrind --leak-check=full --error-exitcode=1 --errors-for-leak-kinds=all $(SPECK)
 
 clean:
