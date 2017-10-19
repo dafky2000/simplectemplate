@@ -31,7 +31,6 @@ test: $(SPECK) $(OBJECTS) $(SUITES)
 
 coverage-test: $(SPECK) $(OBJECTS) $(SUITES)
 	@$(SPECK)
-	cpp-coveralls -y .coveralls.yaml
 
 leak-test: $(SPECK) $(OBJECTS) $(SUITES)
 	valgrind --leak-check=full --error-exitcode=1 --errors-for-leak-kinds=all $(SPECK)

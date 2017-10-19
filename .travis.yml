@@ -6,7 +6,8 @@ before_install:
 script:
   - make test
   - make leak-test
-  - make coverage-test
+after_success:
+  - cpp-coveralls -y .coveralls.yaml
 compiler:
   - cc
   - gcc
