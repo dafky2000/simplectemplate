@@ -60,11 +60,10 @@ char* read_file_contents(const char* filename) {
 
 	fread(contents, 1, length, fp);
 
-	if(fclose(fp) != 0) {
-		perror("failure: close file\n");
-		exit(1);
-	}
-	
+  // No need to check if we fclose properly?
+  // Even if the call fails, the stream passed as parameter will no longer be associated with the file nor its buffers.
+	fclose(fp);
+
 	if(!contents) return contents;
 
 	// Remove the newline from the end but preserve a valid pointer so we can tell the difference between an "error" (when NULL) and simply an empty file.
