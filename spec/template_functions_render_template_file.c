@@ -1,6 +1,9 @@
 #include "../speck/speck.h"
 #include "../src/template_functions.h"
 
+// Tests are all covered by template_functions:render_template_file2
+// Leaving as stub
+
 void spec_render_template_file1(void)
 {
   /* arrange */

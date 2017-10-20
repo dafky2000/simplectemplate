@@ -66,6 +66,7 @@ char* set_template_var (char* template, const char* key, const char* value);
  * returns: rendered template, null terminated
  */
 char* render_template (const char* template_data, int len, const char* keys[], const char* values[]);
+char* render_template2 (const char* template_data, int len, const char* data[]);
 
 /**
  * Render a template with arrays of key/value pairs from a file
@@ -76,6 +77,7 @@ char* render_template (const char* template_data, int len, const char* keys[], c
  * returns: rendered template, null terminated
  */
 char* render_template_file (const char* filename, int len, const char* keys[], const char* values[]);
+char* render_template_file2 (const char* filename, int len, const char* data[]);
 
 /**
  * Replace all occurances of rep

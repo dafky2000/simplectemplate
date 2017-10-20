@@ -26,13 +26,11 @@
 #include "src/template_functions.h"
 
 int main () {
-  const char *keys[] = { "ph1", "ph2", };
-  const char *values[] = {
-    "awesome",
-    " is running",
+  const char *data[] = {
+    "ph1", "awesome",
+    "ph2", " is running",
   };
-
-  char* rendered = render_template_file("spec/templates/basic.txt", 2, keys, values);
+  char* rendered = render_template_file2("spec/templates/basic.txt", 2, data);
 
   printf("%s", rendered);
 
