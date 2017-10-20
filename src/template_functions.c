@@ -110,6 +110,19 @@ char* render_template(const char* template_data, int len, const char* keys[], co
 	return template;
 }
 
+char* render_template2(const char* template_data, int len, const char* data[]) {
+  const char* keys[len];
+  const char* values[len];
+
+  int i;
+  for(i = 0; i < len; i++) {
+    keys[i] = (char *)data[i*2];
+    values[i] = (char *)data[i*2+1];
+  }
+
+  return render_template(template_data, len, keys, values);
+}
+
 char* render_template_file(const char* filename, int len, const char* keys[], const char* values[]) {
 	char* contents = read_file_contents(filename);
 	if(!contents) return NULL;
@@ -118,6 +131,19 @@ char* render_template_file(const char* filename, int len, const char* keys[], co
 	free(contents);
 	
 	return rendered;
+}
+
+char* render_template_file2(const char* filename, int len, const char* data[]) {
+  const char* keys[len];
+  const char* values[len];
+
+  int i;
+  for(i = 0; i < len; i++) {
+    keys[i] = (char *)data[i*2];
+    values[i] = (char *)data[i*2+1];
+  }
+
+  return render_template_file(filename, len, keys, values);
 }
 
 // "Stolen" from https://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c

@@ -47,7 +47,65 @@ const char *values[] = {
 };
 
 // Render the template and replace the template variables
-char *template = render_template("./templates/index.html", 2, keys, values);
+char *template = render_template("<!DOCTYPE html> \n\
+<html> \n\
+  <head> \n\
+    <meta charset="UTF-8"> \n\
+    <meta name="viewport" content="width=device-width, initial-scale=1" /> \n\
+    <title>{{data.title}}</title> \n\
+  </head> \n\
+  <body> \n\
+    <h1>{{data.title}}</h1> \n\
+    {{data.body}} \n\
+  </body> \n\
+</html>", 2, keys, values);
+
+printf("%s\n", template);
+```
+__OR__
+```c
+const char *data[] = {
+	"title", "My super cool website",
+	"body", "Put whatever you want in the body! Heck, even another rendered template ;)"
+};
+
+// Render the template and replace the template variables
+char *template = render_template2("<!DOCTYPE html> \n\
+<html> \n\
+  <head> \n\
+    <meta charset="UTF-8"> \n\
+    <meta name="viewport" content="width=device-width, initial-scale=1" /> \n\
+    <title>{{data.title}}</title> \n\
+  </head> \n\
+  <body> \n\
+    <h1>{{data.title}}</h1> \n\
+    {{data.body}} \n\
+  </body> \n\
+</html>", 2, data);
+
+printf("%s\n", template);
+```
+__OR__
+```c
+const char *keys[] = { "title", "body" };
+const char *values[] = {
+	"My super cool website",
+	"Put whatever you want in the body! Heck, even another rendered template ;)"
+};
+
+// Render the template and replace the template variables
+char *template = render_template_file("./templates/index.html", 2, keys, values);
+printf("%s\n", template);
+```
+__OR__
+```c
+const char *data[] = {
+	"title", "My super cool website",
+	"body", "Put whatever you want in the body! Heck, even another rendered template ;)"
+};
+
+// Render the template and replace the template variables
+char *template = render_template_file2("./templates/index.html", 2, data);
 printf("%s\n", template);
 ```
 
