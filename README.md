@@ -47,7 +47,7 @@ const char *values[] = {
 };
 
 // Render the template and replace the template variables
-char *template = render_template("./templates/index.html", 2, keys, values);
+char *template = render_template_file("./templates/index.html", 2, keys, values);
 printf("%s\n", template);
 ```
 __OR__
@@ -58,7 +58,7 @@ const char *data[] = {
 };
 
 // Render the template and replace the template variables
-char *template = render_template2("./templates/index.html", 2, data);
+char *template = render_template_file2("./templates/index.html", 2, data);
 printf("%s\n", template);
 ```
 
