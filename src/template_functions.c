@@ -34,7 +34,7 @@ int exists(const char* filename) {
 #ifdef _WIN32
 	LPCTSTR name = filename;
 	GET_FILEEX_INFO_LEVELS fInfoLevelId = GetFileExInfoStandard;
-	WIN32_FILE_ATTRIBUTE_DATA InfoFile; 
+	WIN32_FILE_ATTRIBUTE_DATA InfoFile;
 	/* GetFileAttributesEx returns 0 on fail */
 	return GetFileAttributesEx(name,fInfoLevelId,&InfoFile) != 0 ? 0 : -1;
 #endif
@@ -129,7 +129,7 @@ char* render_template_file(const char* filename, int len, const char* keys[], co
 
 	char* rendered = render_template(contents, len, keys, values);
 	free(contents);
-	
+
 	return rendered;
 }
 
@@ -154,7 +154,6 @@ char* str_replace(char* orig, const char* rep, const char* with) {
 	char* tmp;     // varies
 	int len_rep;   // length of rep (the string to remove)
 	int len_with;  // length of with (the string to replace rep with)
-	int len_front; // distance between rep and end of last rep
 	int count;     // number of replacements
 
 	// sanity checks and initialization
@@ -182,7 +181,7 @@ char* str_replace(char* orig, const char* rep, const char* with) {
 	//    orig points to the remainder of orig after "end of rep"
 	while(count--) {
 			ins = strstr(orig, rep);
-			len_front = ins - orig;
+			int len_front = ins - orig;
 			tmp = strncpy(tmp, orig, len_front) + len_front;
 			tmp = strcpy(tmp, with) + len_with;
 			orig += len_front + len_rep; // move to next "end of rep"
