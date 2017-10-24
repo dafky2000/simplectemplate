@@ -10,7 +10,7 @@ void spec_read_file_contents1(void)
   char* contents = read_file_contents(filename);
 
   /* assert */
-  sp_assert(strcmp(contents, "My {{data.ph1}} test{{data.ph2}}") == 0);
+  sp_assert_equal_s(contents, "My {{data.ph1}} test{{data.ph2}}");
 
   if(contents) free(contents);
 }

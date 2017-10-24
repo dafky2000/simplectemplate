@@ -4,7 +4,7 @@
 void spec_render_template21(void)
 {
   /* arrange */
-  const char *data[] = { 
+  const char *data[] = {
     "ph1", "awesome",
   };
   const char* template = "My {{data.ph1}} test";
@@ -13,7 +13,7 @@ void spec_render_template21(void)
   char* rendered = render_template2(template, 1, data);
 
   /* assert */
-  sp_assert(strcmp(rendered, "My awesome test") == 0);
+  sp_assert_equal_s(rendered, "My awesome test");
 
   free(rendered);
 }
@@ -31,7 +31,7 @@ void spec_render_template22(void)
   char* rendered = render_template2(template, 2, data);
 
   /* assert */
-  sp_assert(strcmp(rendered, "My awesome test is running") == 0);
+  sp_assert_equal_s(rendered, "My awesome test is running");
 
   free(rendered);
 }
@@ -49,7 +49,7 @@ void spec_render_template23(void)
   char* rendered = render_template2(template, 2, data);
 
   /* assert */
-  sp_assert(strcmp(rendered, "My awesome test is running{{data.emptyph}}") == 0);
+  sp_assert_equal_s(rendered, "My awesome test is running{{data.emptyph}}");
 
   free(rendered);
 }
@@ -67,7 +67,7 @@ void spec_render_template24(void)
   char* rendered = render_template2(template, 2, data);
 
   /* assert */
-  sp_assert(strcmp(rendered, "My awesome test is running{{data.emptyph}}") == 0);
+  sp_assert_equal_s(rendered, "My awesome test is running{{data.emptyph}}");
 
   free(rendered);
 }
