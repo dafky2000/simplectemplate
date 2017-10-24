@@ -17,7 +17,7 @@ void spec_render_template_file21(void)
   char* rendered = render_template_file2(filename, 2, data);
 
   /* assert */
-  sp_assert(strcmp(rendered, "My awesome test is running") == 0);
+  sp_assert_equal_s(rendered, "My awesome test is running");
 
   if(rendered) free(rendered);
 }

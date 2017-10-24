@@ -10,7 +10,7 @@ void spec_str_replace1(void)
   char* replaced = str_replace(contents, "test", "zzz");
 
   /* assert */
-  sp_assert(strcmp(replaced, "zzzing Test zzz TEST 123 12 T") == 0);
+  sp_assert_equal_s(replaced, "zzzing Test zzz TEST 123 12 T");
 
   if(replaced) free(replaced);
 }
@@ -24,7 +24,7 @@ void spec_str_replace2(void)
   char* replaced = str_replace(contents, "test", "zzz");
 
   /* assert */
-  sp_assert(strcmp(replaced, "") == 0);
+  sp_assert_equal_s(replaced, "");
 
   if(replaced) free(replaced);
 }

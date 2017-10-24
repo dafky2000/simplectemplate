@@ -12,7 +12,7 @@ void spec_example(void)
   strcat(filename, ".html");
 
   /* assert */
-  sp_assert(strcmp(filename, "index.html") == 0);
-  
+  sp_assert_equal_s(filename, "index.html");
+
   free(filename);
 }
