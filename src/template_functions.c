@@ -25,26 +25,7 @@
 
 #include "template_functions.h"
 
-int exists(const char* filename) {
-#ifdef linux
-	struct stat st;
-	return (lstat(filename, &st));
-#endif
-
-#ifdef _WIN32
-	LPCTSTR name = filename;
-	GET_FILEEX_INFO_LEVELS fInfoLevelId = GetFileExInfoStandard;
-	WIN32_FILE_ATTRIBUTE_DATA InfoFile;
-	/* GetFileAttributesEx returns 0 on fail */
-	return GetFileAttributesEx(name,fInfoLevelId,&InfoFile) != 0 ? 0 : -1;
-#endif
-
-	return -1;
-}
-
 char* read_file_contents(const char* filename) {
-	if(exists(filename) != 0) return NULL;
-
 	// Open ze file
 	FILE* fp = fopen(filename, "r");
 	if(fp == NULL) return NULL;

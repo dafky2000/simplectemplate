@@ -28,18 +28,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef linux
-#include <sys/stat.h>
-#endif
-#ifdef _WIN32
-#include "windows.h"
-#endif
-
-/**
- * Check if filename exists
- * Usage: if(exists(filename) == 0);
- */
-int exists(const char* filename);
 
 /**
  * Read the contents of a file
