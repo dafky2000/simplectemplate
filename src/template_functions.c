@@ -25,7 +25,43 @@
 
 #include "template_functions.h"
 
-char* read_file_contents(const char* filename) {
+/**
+ * Read the contents of a file
+ * filename: Relative path of the file to read
+ * returns: null-terminated string of the file contents
+ */
+static char* read_file_contents (const char* filename);
+
+/**
+ * Performs a str_replace using the correct formatting with just key/value pair
+ * template: the template contents with placeholders to be replaced
+ * key: the placeholder identifier
+ * value: value to replace with
+ * returns: Replaced template
+ */
+static char* set_template_var (char* template, const char* key, const char* value);
+
+/**
+ * Render a template with arrays of key/value pairs
+ * template_data: template string
+ * len: number of key/value pairs
+ * keys: array of const char* keys to replace
+ * values: array of const char* values to replace into template
+ * returns: rendered template, null terminated
+ */
+static char* render_template (const char* template_data, int len, const char* keys[], const char* values[]);
+static char* render_template2 (const char* template_data, int len, const char* data[]);
+
+/**
+ * Replace all occurances of rep
+ * orig: text to perfom search and replace on
+ * rep: text to search for
+ * with: text to replace with
+ * returns: replaced text
+ */
+static char* str_replace (char* orig, const char* rep, const char* with);
+
+static char* read_file_contents(const char* filename) {
 	// Open ze file
 	FILE* fp = fopen(filename, "r");
 	if(fp == NULL) return NULL;
@@ -59,7 +95,7 @@ char* read_file_contents(const char* filename) {
 	return contents;
 }
 
-char* set_template_var(char* template, const char* key, const char* value) {
+static char* set_template_var(char* template, const char* key, const char* value) {
 	int keylen = strlen("{{data.}}") + strlen(key) + 1;
 	char* fullkey = malloc(keylen);
 	memset(fullkey, 0, keylen);
@@ -72,7 +108,7 @@ char* set_template_var(char* template, const char* key, const char* value) {
 	return ret;
 }
 
-char* render_template(const char* template_data, int len, const char* keys[], const char* values[]) {
+static char* render_template(const char* template_data, int len, const char* keys[], const char* values[]) {
 	int template_length = strlen(template_data) + 1;
 	char* template = malloc(template_length);
 	memset(template, 0, template_length);
@@ -91,7 +127,7 @@ char* render_template(const char* template_data, int len, const char* keys[], co
 	return template;
 }
 
-char* render_template2(const char* template_data, int len, const char* data[]) {
+static char* render_template2(const char* template_data, int len, const char* data[]) {
   const char* keys[len];
   const char* values[len];
 
@@ -129,7 +165,7 @@ char* render_template_file2(const char* filename, int len, const char* data[]) {
 
 // "Stolen" from https://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c
 // You must free the result if result is non-NULL.
-char* str_replace(char* orig, const char* rep, const char* with) {
+static char* str_replace(char* orig, const char* rep, const char* with) {
 	char* result;  // the return string
 	char* ins;     // the next insert point
 	char* tmp;     // varies
