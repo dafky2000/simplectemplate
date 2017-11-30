@@ -30,22 +30,6 @@
 #include <string.h>
 
 /**
- * Read the contents of a file
- * filename: Relative path of the file to read
- * returns: null-terminated string of the file contents
- */
-char* read_file_contents (const char* filename);
-
-/**
- * Performs a str_replace using the correct formatting with just key/value pair
- * template: the template contents with placeholders to be replaced
- * key: the placeholder identifier
- * value: value to replace with
- * returns: Replaced template
- */
-char* set_template_var (char* template, const char* key, const char* value);
-
-/**
  * Render a template with arrays of key/value pairs
  * template_data: template string
  * len: number of key/value pairs
@@ -66,14 +50,5 @@ char* render_template2 (const char* template_data, int len, const char* data[]);
  */
 char* render_template_file (const char* filename, int len, const char* keys[], const char* values[]);
 char* render_template_file2 (const char* filename, int len, const char* data[]);
-
-/**
- * Replace all occurances of rep
- * orig: text to perfom search and replace on
- * rep: text to search for
- * with: text to replace with
- * returns: replaced text
- */
-char* str_replace (char* orig, const char* rep, const char* with);
 
 #endif
