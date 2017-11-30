@@ -4,42 +4,42 @@ char* read_file_contents(const char* filename);
 
 void spec_read_file_contents1(void)
 {
-  /* arrange */
-  const char* filename = "spec/templates/basic.txt";
+	/* arrange */
+	const char* filename = "spec/templates/basic.txt";
 
-  /* act */
-  char* contents = read_file_contents(filename);
+	/* act */
+	char* contents = read_file_contents(filename);
 
-  /* assert */
-  sp_assert_equal_s(contents, "My {{data.ph1}} test{{data.ph2}}");
+	/* assert */
+	sp_assert_equal_s(contents, "My {{data.ph1}} test{{data.ph2}}");
 
-  if(contents) free(contents);
+	if(contents) free(contents);
 }
 
 void spec_read_file_contents2(void)
 {
-  /* arrange */
-  const char* filename = "spec/templates/basic_zyx.txt";
+	/* arrange */
+	const char* filename = "spec/templates/basic_zyx.txt";
 
-  /* act */
-  char* contents = read_file_contents(filename);
+	/* act */
+	char* contents = read_file_contents(filename);
 
-  /* assert */
-  sp_assert(!contents);
+	/* assert */
+	sp_assert(!contents);
 
-  if(contents) free(contents);
+	if(contents) free(contents);
 }
 
 void spec_read_file_contents3(void)
 {
-  /* arrange */
-  const char* filename = "spec/templates/empty.txt";
+	/* arrange */
+	const char* filename = "spec/templates/empty.txt";
 
-  /* act */
-  char* contents = read_file_contents(filename);
+	/* act */
+	char* contents = read_file_contents(filename);
 
-  /* assert */
-  sp_assert(contents != NULL);
+	/* assert */
+	sp_assert(contents != NULL);
 
-  if(contents) free(contents);
+	if(contents) free(contents);
 }

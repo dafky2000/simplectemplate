@@ -26,15 +26,15 @@
 #include "src/template_functions.h"
 
 int main () {
-  const char *data[] = {
-    "ph1", "awesome",
-    "ph2", " is running",
-  };
-  char* rendered = render_template_file2("spec/templates/basic.txt", 2, data);
+	const char *data[] = {
+		"ph1", "awesome",
+		"ph2", " is running",
+	};
+	char* rendered = render_template_file2("spec/templates/basic.txt", 2, data);
 
-  printf("%s", rendered);
+	printf("%s", rendered);
 
-  if(rendered) free(rendered);
+	if(rendered) free(rendered);
 
 	return 0;
 }
