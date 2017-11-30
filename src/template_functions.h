@@ -30,6 +30,17 @@
 #include <string.h>
 
 /**
+ * Render a template with arrays of key/value pairs
+ * template_data: template string
+ * len: number of key/value pairs
+ * keys: array of const char* keys to replace
+ * values: array of const char* values to replace into template
+ * returns: rendered template, null terminated
+ */
+char* render_template (const char* template_data, int len, const char* keys[], const char* values[]);
+char* render_template2 (const char* template_data, int len, const char* data[]);
+
+/**
  * Render a template with arrays of key/value pairs from a file
  * filename: name of file to open as the template
  * len: number of key/value pairs

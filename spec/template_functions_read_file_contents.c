@@ -1,5 +1,6 @@
 #include "../speck/speck.h"
-#include "../src/template_functions.h"
+
+char* read_file_contents(const char* filename);
 
 void spec_read_file_contents1(void)
 {

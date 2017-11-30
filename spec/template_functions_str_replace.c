@@ -1,5 +1,6 @@
 #include "../speck/speck.h"
-#include "../src/template_functions.h"
+
+char* str_replace(char* orig, const char* rep, const char* with);
 
 void spec_str_replace1(void)
 {

@@ -11,8 +11,8 @@ all: default
 OBJECTS = main.o $(patsubst src/%.c, src/%.o, $(wildcard src/*.c))
 HEADERS = main.c $(wildcard src/*.h)
 
-test: CFLAGS += -g --coverage
-test: SPECK_CFLAGS += -coverage
+test: CFLAGS += -g --coverage -DUNITTESTS
+test: SPECK_CFLAGS += -coverage -DUNITTESTS
 
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
