@@ -1,6 +1,6 @@
-Related Issue: 
+Related Issue (required): 
 
-Status: (Fixed/completed, unfinished/work in progress, need help, etc.)
+Status (required): (Fixed/completed, unfinished/work in progress, need help, etc.)
 
 Comments:
 
