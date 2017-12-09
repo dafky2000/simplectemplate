@@ -29,13 +29,7 @@
 #endif
 
 #ifndef TEMPLATE_FUNCTIONS_H
-#define TEMPLATE_FUNCTIONS_H
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-
+#include "template_functions.h"
 #endif
 
 /**
@@ -194,9 +188,17 @@ STATIC int get_surrounded_with(const char* template, const char* open, const cha
 	return 0;
 }
 
-char* render_template(const char* template_data, int len, const char* keys[], const char* values[]) {
-	const char* open = "{{";
-	const char* close = "}}";
+char* my_render_template(const char* template_data, int len, const char* data[], struct RenderOptions options) {
+	const char* keys[len];
+	const char* values[len];
+	unsigned int i;
+	for(i = 0; i < len; i++) {
+		keys[i] = (char *)data[i*2];
+		values[i] = (char *)data[i*2+1];
+	}
+
+	const char* open = options.placeholder_open;
+	const char* close = options.placeholder_close;
 
 	int template_length = strlen(template_data) + 1;
 	char* output = malloc(template_length);
@@ -204,8 +206,6 @@ char* render_template(const char* template_data, int len, const char* keys[], co
 
 	int start = -1, length = -1;
 	while(get_surrounded_with(output, open, close, &start, &length)) {
-		printf("%s\n", output);
-
 		char matched[length+1];
 		memset(matched, 0, length + 1);
 		strncpy(matched, output + start, length);
@@ -242,38 +242,22 @@ char* render_template(const char* template_data, int len, const char* keys[], co
 	return output;
 }
 
-char* render_template2(const char* template_data, int len, const char* data[]) {
-	const char* keys[len];
-	const char* values[len];
-
-	int i;
-	for(i = 0; i < len; i++) {
-		keys[i] = (char *)data[i*2];
-		values[i] = (char *)data[i*2+1];
-	}
-
-	return render_template(template_data, len, keys, values);
+char* render_template(const char* template_data, int len, const char* data[]) {
+	return my_render_template(template_data, len, data,
+		(struct RenderOptions){.placeholder_open="{{", .placeholder_close="}}"});
 }
 
-char* render_template_file(const char* filename, int len, const char* keys[], const char* values[]) {
+char* my_render_template_file(const char* filename, int len, const char* data[], struct RenderOptions options) {
 	char* contents = read_file_contents(filename);
 	if(!contents) return NULL;
 
-	char* rendered = render_template(contents, len, keys, values);
+	char* rendered = my_render_template(contents, len, data, options);
 	free(contents);
 
 	return rendered;
 }
 
-char* render_template_file2(const char* filename, int len, const char* data[]) {
-	const char* keys[len];
-	const char* values[len];
-
-	int i;
-	for(i = 0; i < len; i++) {
-		keys[i] = (char *)data[i*2];
-		values[i] = (char *)data[i*2+1];
-	}
-
-	return render_template_file(filename, len, keys, values);
+char* render_template_file(const char* filename, int len, const char* data[]) {
+	return my_render_template_file(filename, len, data,
+		(struct RenderOptions){.placeholder_open="{{", .placeholder_close="}}"});
 }

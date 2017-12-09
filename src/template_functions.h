@@ -30,16 +30,26 @@
 #include <string.h>
 #include <ctype.h>
 
+struct RenderOptions {
+	const char* placeholder_open;    // == "{{"
+	const char* placeholder_close;   // == "}}"
+
+	/* const char* condition_delimeter; // == " " */
+	/* const char* section_open;        // == "#" */
+	/* const char* section_end;         // == "/" */
+} options;
+
 /**
  * Render a template with arrays of key/value pairs
  * template_data: template string
  * len: number of key/value pairs
  * keys: array of const char* keys to replace
  * values: array of const char* values to replace into template
+ * options: RenderOptions structure with values for rendering templates
  * returns: rendered template, null terminated
  */
-char* render_template (const char* template_data, int len, const char* keys[], const char* values[]);
-char* render_template2 (const char* template_data, int len, const char* data[]);
+char* my_render_template (const char* template_data, int len, const char* data[], struct RenderOptions options);
+char* render_template (const char* template_data, int len, const char* data[]);
 
 /**
  * Render a template with arrays of key/value pairs from a file
@@ -47,9 +57,10 @@ char* render_template2 (const char* template_data, int len, const char* data[]);
  * len: number of key/value pairs
  * keys: array of const char* keys to replace
  * values: array of const char* values to replace into template
+ * options: RenderOptions structure with values for rendering templates
  * returns: rendered template, null terminated
  */
-char* render_template_file (const char* filename, int len, const char* keys[], const char* values[]);
-char* render_template_file2 (const char* filename, int len, const char* data[]);
+char* my_render_template_file (const char* filename, int len, const char* data[], struct RenderOptions options);
+char* render_template_file (const char* filename, int len, const char* data[]);
 
 #endif

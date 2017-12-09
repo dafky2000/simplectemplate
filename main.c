@@ -30,7 +30,7 @@ int main () {
 		"ph1", "awesome",
 		"ph2", " is running",
 	};
-	char* rendered = render_template_file2("spec/templates/basic.txt", 2, data);
+	char* rendered = render_template_file("spec/templates/basic.txt", 2, data);
 
 	printf("%s\n", rendered);
 
