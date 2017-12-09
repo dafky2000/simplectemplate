@@ -32,7 +32,7 @@ int main () {
 	};
 	char* rendered = render_template_file2("spec/templates/basic.txt", 2, data);
 
-	printf("%s", rendered);
+	printf("%s\n", rendered);
 
 	if(rendered) free(rendered);
 

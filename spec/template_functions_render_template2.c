@@ -49,7 +49,8 @@ void spec_render_template23(void)
 	char* rendered = render_template2(template, 2, data);
 
 	/* assert */
-	sp_assert_equal_s(rendered, "My awesome test is running{{data.emptyph}}");
+	printf("Actual: %s\n", rendered);
+	sp_assert_equal_s(rendered, "My awesome test is running");
 
 	free(rendered);
 }
@@ -67,7 +68,7 @@ void spec_render_template24(void)
 	char* rendered = render_template2(template, 2, data);
 
 	/* assert */
-	sp_assert_equal_s(rendered, "My awesome test is running{{data.emptyph}}");
+	sp_assert_equal_s(rendered, "My awesome test is running");
 
 	free(rendered);
 }
