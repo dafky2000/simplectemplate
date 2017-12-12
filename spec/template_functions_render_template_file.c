@@ -81,8 +81,8 @@ void spec_render_template_file4(void)
 	/* act */
 	char* rendered = my_render_template_file(filename, 2, data,
 		(struct RenderOptions){
-			.placeholder_open="{{",
-			.placeholder_close="}}",
+			/* .placeholder_open="{{", */
+			/* .placeholder_close="}}", */
 			.data_open="data.",
 		});
 

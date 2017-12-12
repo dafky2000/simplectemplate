@@ -197,9 +197,14 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 		values[i] = (char *)data[i*2+1];
 	}
 
+	// Get the options and set defaults if they aren't set.
 	const char* open = options.placeholder_open;
 	const char* close = options.placeholder_close;
 	const char* data_open = options.data_open;
+
+	if(open == NULL) open = "{{";
+	if(close == NULL) close = "}}";
+	if(data_open == NULL) data_open = "";
 
 	int template_length = strlen(template_data) + 1;
 	char* output = malloc(template_length);
@@ -242,12 +247,7 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 }
 
 char* render_template(const char* template_data, int len, const char* data[]) {
-	return my_render_template(template_data, len, data,
-		(struct RenderOptions){
-			.placeholder_open="{{",
-			.placeholder_close="}}",
-			.data_open="",
-		});
+	return my_render_template(template_data, len, data, (struct RenderOptions){});
 }
 
 char* my_render_template_file(const char* filename, int len, const char* data[], struct RenderOptions options) {
@@ -261,10 +261,5 @@ char* my_render_template_file(const char* filename, int len, const char* data[],
 }
 
 char* render_template_file(const char* filename, int len, const char* data[]) {
-	return my_render_template_file(filename, len, data,
-		(struct RenderOptions){
-			.placeholder_open="{{",
-			.placeholder_close="}}",
-			.data_open="",
-		});
+	return my_render_template_file(filename, len, data, (struct RenderOptions){});
 }
