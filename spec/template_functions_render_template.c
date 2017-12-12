@@ -7,7 +7,7 @@ void spec_render_template1(void)
 	const char *data[] = {
 		"ph1", "awesome",
 	};
-	const char* template = "My {{data.ph1}} test";
+	const char* template = "My {{ph1}} test";
 
 	/* act */
 	char* rendered = render_template(template, 1, data);
@@ -25,7 +25,7 @@ void spec_render_template2(void)
 		"ph1", "awesome",
 		"ph2", " is running",
 	};
-	const char* template = "My {{data.ph1}} test{{data.ph2}}";
+	const char* template = "My {{ph1}} test{{ph2}}";
 
 	/* act */
 	char* rendered = render_template(template, 2, data);
@@ -43,7 +43,7 @@ void spec_render_template3(void)
 		"ph1", "awesome",
 		"ph2", " is running",
 	};
-	const char* template = "My {{data.ph1}} test{{data.ph2}}{{data.emptyph}}";
+	const char* template = "My {{ph1}} test{{ph2}}{{emptyph}}";
 
 	/* act */
 	char* rendered = render_template(template, 2, data);
@@ -62,7 +62,7 @@ void spec_render_template4(void)
 		"ph1", "awesome",
 		"ph2", " is running",
 	};
-	const char* template = "My {{data.ph1}} test{{data.ph2}}{{data.emptyph}}";
+	const char* template = "My {{ph1}} test{{ph2}}{{emptyph}}";
 
 	/* act */
 	char* rendered = render_template(template, 2, data);
