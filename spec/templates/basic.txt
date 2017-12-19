@@ -1,1 +1,1 @@
-My {{data.ph1}} test{{data.ph2}}
+My {{ph1}} test{{ph2}}

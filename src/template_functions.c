@@ -29,12 +29,7 @@
 #endif
 
 #ifndef TEMPLATE_FUNCTIONS_H
-#define TEMPLATE_FUNCTIONS_H
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
+#include "template_functions.h"
 #endif
 
 /**
@@ -128,77 +123,143 @@ STATIC char* str_replace(char* orig, const char* rep, const char* with) {
 	return result;
 }
 
-/**
- * Performs a str_replace using the correct formatting with just key/value pair
- * template: the template contents with placeholders to be replaced
- * key: the placeholder identifier
- * value: value to replace with
- * returns: Replaced template
- */
-STATIC char* set_template_var(char* template, const char* key, const char* value) {
-	int keylen = strlen("{{data.}}") + strlen(key) + 1;
-	char* fullkey = malloc(keylen);
-	memset(fullkey, 0, keylen);
+STATIC const char* get_last_token(const char* current, unsigned int token_count, const char* tokens[]) {
+	unsigned int remaining_len = strlen(current);
+	const char* next_token = &current[remaining_len];
+	const char* last_delimiter = NULL;
 
-	strcat(fullkey, "{{data.");
-	strcat(fullkey, key);
-	strcat(fullkey, "}}");
-	char* ret = str_replace(template, fullkey, value);
-	free(fullkey);
-	return ret;
-}
-
-char* render_template(const char* template_data, int len, const char* keys[], const char* values[]) {
-	int template_length = strlen(template_data) + 1;
-	char* template = malloc(template_length);
-	memset(template, 0, template_length);
-
-	strcpy(template, template_data);
-
-	if(template != NULL) {
-		int x = 0;
-		for(x = 0; x < len; ++x) {
-			char* processed = set_template_var(template, keys[x], values[x]);
-			free(template);
-			template = processed;
+	unsigned int i = 0;
+	for(; i < token_count; ++i) {
+		if(remaining_len >= strlen(tokens[i])) {
+			char* subject_token = strstr(current, tokens[i]);
+			if(subject_token != NULL && subject_token < next_token) {
+				next_token = subject_token;
+				last_delimiter = tokens[i];
+			}
 		}
 	}
 
-	return template;
+	return last_delimiter;
 }
 
-char* render_template2(const char* template_data, int len, const char* data[]) {
+STATIC const char* my_strtok(const char* current, unsigned int token_count, const char* tokens[]) {
+	unsigned int remaining_len = strlen(current);
+	const char* next_token = &current[remaining_len];
+
+	unsigned int i = 0;
+	for(; i < token_count; ++i) {
+		if(remaining_len >= strlen(tokens[i])) {
+			char* subject_token = strstr(current, tokens[i]);
+
+			if(subject_token != NULL && subject_token < next_token) {
+				next_token = subject_token;
+			}
+		}
+	}
+
+	if(next_token < &current[remaining_len]) return next_token;
+
+	return NULL;
+}
+
+STATIC int get_surrounded_with(const char* template, const char* open, const char* close, int* start, int* length) {
+	*start = -1;
+	*length = -1;
+
+	const char* tokens[] = { open, close };
+
+	char template_copy[strlen(template) + 1];
+	strcpy(template_copy, template);
+
+	const char* current = my_strtok(template_copy, 2, tokens);
+	while(current != NULL) {
+		const char* last_token = get_last_token(current, 2, tokens);
+
+		if(last_token == open) *start = current - template_copy + strlen(open);
+		else if(*start > -1 && last_token == close) *length = (current - template_copy) - *start;
+
+		if(*start > -1 && *length > -1) {
+			return 1;
+		}
+
+		current = my_strtok(&current[1], 2, tokens);
+	}
+
+	return 0;
+}
+
+char* my_render_template(const char* template_data, int len, const char* data[], struct RenderOptions options) {
 	const char* keys[len];
 	const char* values[len];
-
-	int i;
+	unsigned int i;
 	for(i = 0; i < len; i++) {
 		keys[i] = (char *)data[i*2];
 		values[i] = (char *)data[i*2+1];
 	}
 
-	return render_template(template_data, len, keys, values);
+	// Get the options and set defaults if they aren't set.
+	const char* open = options.placeholder_open;
+	const char* close = options.placeholder_close;
+	const char* data_open = options.data_open;
+
+	if(open == NULL) open = "{{";
+	if(close == NULL) close = "}}";
+	if(data_open == NULL) data_open = "";
+
+	int template_length = strlen(template_data) + 1;
+	char* output = malloc(template_length);
+	strcpy(output, template_data);
+
+	int start = -1, length = -1;
+	while(get_surrounded_with(output, open, close, &start, &length)) {
+		char matched[length+1];
+		memset(matched, 0, length + 1);
+		strncpy(matched, output + start, length);
+
+		char toreplace[strlen(open) + strlen(matched) + strlen(close) + 1];
+		strcpy(toreplace, open);
+		strcat(toreplace, matched);
+		strcat(toreplace, close);
+
+		unsigned int i = 0;
+		for(; i < len; ++i) {
+			unsigned int keylen = strlen(data_open) + strlen(keys[i]);
+			char key[keylen + 1];
+			strcpy(key, data_open);
+			strcat(key, keys[i]);
+
+			if(strncmp(matched, key, keylen) == 0) {
+				char* replaced = str_replace(output, toreplace, values[i]);
+				free(output);
+				output = replaced;
+				break;
+			}
+		}
+
+		if(i >= len) {
+			char* replaced = str_replace(output, toreplace, "");
+			free(output);
+			output = replaced;
+		}
+	}
+
+	return output;
 }
 
-char* render_template_file(const char* filename, int len, const char* keys[], const char* values[]) {
+char* render_template(const char* template_data, int len, const char* data[]) {
+	return my_render_template(template_data, len, data, (struct RenderOptions){});
+}
+
+char* my_render_template_file(const char* filename, int len, const char* data[], struct RenderOptions options) {
 	char* contents = read_file_contents(filename);
 	if(!contents) return NULL;
 
-	char* rendered = render_template(contents, len, keys, values);
+	char* rendered = my_render_template(contents, len, data, options);
 	free(contents);
 
 	return rendered;
 }
 
-char* render_template_file2(const char* filename, int len, const char* data[]) {
-	const char* keys[len];
-	const char* values[len];
-
-	int i;
-	for(i = 0; i < len; i++) {
-		keys[i] = (char *)data[i*2];
-		values[i] = (char *)data[i*2+1];
-	}
-
-	return render_template_file(filename, len, keys, values);
+char* render_template_file(const char* filename, int len, const char* data[]) {
+	return my_render_template_file(filename, len, data, (struct RenderOptions){});
 }
