@@ -101,7 +101,7 @@ void spec_render_template_file4(void)
 			Powered by <a href=\"https://github.com/dafky2000/simplectemplate\">simplectemplate</a>\n\
 		</p>\n\
 	</body>\n\
-</html>");
+</html>\n\n");
 
 	if(rendered) free(rendered);
 }
