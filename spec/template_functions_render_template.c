@@ -25,13 +25,13 @@ void spec_render_template2(void)
 		"ph1", "awesome",
 		"ph2", " is running",
 	};
-	const char* template = "My {{ph1}} test{{ph2}}";
+	const char* template = "My {{ph1}} test{{ph2}}123\n\n";
 
 	/* act */
 	char* rendered = render_template(template, 2, data);
 
 	/* assert */
-	sp_assert_equal_s(rendered, "My awesome test is running");
+	sp_assert_equal_s(rendered, "My awesome test is running123\n\n");
 
 	free(rendered);
 }
