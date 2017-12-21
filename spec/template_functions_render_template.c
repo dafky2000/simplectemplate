@@ -72,3 +72,21 @@ void spec_render_template4(void)
 
 	free(rendered);
 }
+
+void spec_render_template5(void)
+{
+	/* arrange */
+	const char *data[] = {
+		"ph1", "awesome",
+		"ph2", " is running",
+	};
+	const char* template = "My {{ph1}} test{{ph2}}{{#emptyph}} {{test123 testing 1 2 ummm 12}}{{#startandseparator bob loblaw}}";
+
+	/* act */
+	char* rendered = render_template(template, 2, data);
+
+	/* assert */
+	sp_assert_equal_s(rendered, "My awesome test is running ");
+
+	free(rendered);
+}

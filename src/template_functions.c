@@ -201,21 +201,46 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 	const char* open = options.placeholder_open;
 	const char* close = options.placeholder_close;
 	const char* data_open = options.data_open;
+	const char* data_cond_separator = options.data_cond_separator;
+	const char* data_cond_open_prefix = options.data_cond_open_prefix;
+	const char* data_cond_close_prefix = options.data_cond_close_prefix;
 
+	// Setup defaults
 	if(open == NULL) open = "{{";
 	if(close == NULL) close = "}}";
 	if(data_open == NULL) data_open = "";
+	if(data_cond_separator == NULL) data_cond_separator = " ";
+	if(data_cond_open_prefix == NULL) data_cond_open_prefix = "#";
+	if(data_cond_close_prefix == NULL) data_cond_close_prefix = "/";
 
 	int template_length = strlen(template_data) + 1;
 	char* output = malloc(template_length);
 	strcpy(output, template_data);
 
-	int start = -1, length = -1;
+	int start = 0, length = 0;
 	while(get_surrounded_with(output, open, close, &start, &length)) {
+		// Get the match, inside the open and close braces
 		char matched[length+1];
 		memset(matched, 0, length + 1);
 		strncpy(matched, output + start, length);
 
+		// TODO: Do some logic here to check if its a condition
+		// If we have the separator
+		char* data_separated = strstr(matched, data_cond_separator);
+		if(data_separated != NULL) {
+			printf("Data '%s' has condition separator, value = '%s'\n", matched, data_separated+strlen(data_cond_separator));
+		}
+
+		// If we start with a condition
+		if(strstr(matched, data_cond_open_prefix) == matched) {
+			printf("Data '%s' has condition prefix\n", matched);
+
+			// 1) Get the closing element {{/data}}
+			// 2) Replace any placeholders in between the match
+			// 3) Replace the entire match after #2 with the appropriate data value
+		}
+
+		// Reassemble the entire placeholder and replace it
 		char toreplace[strlen(open) + strlen(matched) + strlen(close) + 1];
 		strcpy(toreplace, open);
 		strcat(toreplace, matched);
