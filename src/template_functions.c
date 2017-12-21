@@ -224,20 +224,27 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 		memset(matched, 0, length + 1);
 		strncpy(matched, output + start, length);
 
+		int is_condition = 0;
+
 		// TODO: Do some logic here to check if its a condition
 		// If we have the separator
 		char* data_separated = strstr(matched, data_cond_separator);
 		if(data_separated != NULL) {
-			printf("Data '%s' has condition separator, value = '%s'\n", matched, data_separated+strlen(data_cond_separator));
+			is_condition = 1;
+			data_separated += strlen(data_cond_separator);
+			printf("Data '%s' has condition separator, value = '%s'\n", matched, data_separated);
 		}
 
 		// If we start with a condition
+		char* data_inside = NULL;
 		if(strstr(matched, data_cond_open_prefix) == matched) {
+			is_condition = 1;
 			printf("Data '%s' has condition prefix\n", matched);
 
 			// 1) Get the closing element {{/data}}
 			// 2) Replace any placeholders in between the match
-			// 3) Replace the entire match after #2 with the appropriate data value
+			// 3) Set the data_inside to the replace inner text
+			data_inside = "test";
 		}
 
 		// Reassemble the entire placeholder and replace it
@@ -246,6 +253,7 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 		strcat(toreplace, matched);
 		strcat(toreplace, close);
 
+		// Get the token value from the input data
 		unsigned int i = 0;
 		for(; i < len; ++i) {
 			unsigned int keylen = strlen(data_open) + strlen(keys[i]);
@@ -254,6 +262,7 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 			strcat(key, keys[i]);
 
 			if(strncmp(matched, key, keylen) == 0) {
+				// TODO: Store the match and do the replacement later (if not a condition)
 				char* replaced = str_replace(output, toreplace, values[i]);
 				free(output);
 				output = replaced;
@@ -261,10 +270,14 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 			}
 		}
 
+		// If the key wasn't found
 		if(i >= len) {
 			char* replaced = str_replace(output, toreplace, "");
 			free(output);
 			output = replaced;
+		} else {
+			// Do stuff if it is a condition
+			// Else, do the normal replacement (from the TODO above)
 		}
 	}
 
