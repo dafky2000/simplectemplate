@@ -33,7 +33,6 @@
 struct RenderOptions {
 	const char* placeholder_open;       // "{{"
 	const char* placeholder_close;      // "}}"
-	const char* data_open;              // "data."
 	const char* data_cond_separator;    // " " If a separator is defined than we assume the structure {{cond data}}
 	const char* data_cond_open_prefix;  // "#" If a prefix is defined than we assume this is {{#cond}} data {{/cond}} (mustache style)
 	const char* data_cond_close_prefix; // "/"

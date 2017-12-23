@@ -200,7 +200,6 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 	// Get the options and set defaults if they aren't set.
 	const char* open = options.placeholder_open;
 	const char* close = options.placeholder_close;
-	const char* data_open = options.data_open;
 	const char* data_cond_separator = options.data_cond_separator;
 	const char* data_cond_open_prefix = options.data_cond_open_prefix;
 	const char* data_cond_close_prefix = options.data_cond_close_prefix;
@@ -208,7 +207,6 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 	// Setup defaults
 	if(open == NULL) open = "{{";
 	if(close == NULL) close = "}}";
-	if(data_open == NULL) data_open = "";
 	if(data_cond_separator == NULL) data_cond_separator = " ";
 	if(data_cond_open_prefix == NULL) data_cond_open_prefix = "#";
 	if(data_cond_close_prefix == NULL) data_cond_close_prefix = "/";
@@ -217,58 +215,138 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 	char* output = malloc(template_length);
 	strcpy(output, template_data);
 
-	int start = 0, length = 0;
-	while(get_surrounded_with(output, open, close, &start, &length)) {
-		// Get the match, inside the open and close braces
-		char matched[length+1];
-		memset(matched, 0, length + 1);
-		strncpy(matched, output + start, length);
+	int start = 0, match_len = 0;
+	while(get_surrounded_with(output, open, close, &start, &match_len)) {
+		char* matched_start = output + start;
 
-		int is_condition = 0;
+		// Get the match, inside the open and close braces
+		char matched_copy[match_len+1];
+		memset(matched_copy, 0, match_len + 1);
+		strncpy(matched_copy, matched_start, match_len);
+
+		int is_condition_sep = 0;
+		int is_condition_pre = 0;
+		char* data = NULL;
 
 		// TODO: Do some logic here to check if its a condition
 		// If we have the separator
-		char* data_separated = strstr(matched, data_cond_separator);
+		char* data_separated = strstr(matched_copy, data_cond_separator);
 		if(data_separated != NULL) {
-			is_condition = 1;
+			is_condition_sep = 1;
 			data_separated += strlen(data_cond_separator);
-			printf("Data '%s' has condition separator, value = '%s'\n", matched, data_separated);
+
+			// Copy the separated data to the data
+			data = malloc(strlen(data_separated) + 1);
+			memset(data, 0, strlen(data_separated) + 1);
+			strcpy(data, data_separated);
+
+			/* printf("Element '%s' has condition separator, value = '%s'\n", matched_copy, data); */
 		}
 
 		// If we start with a condition
-		char* data_inside = NULL;
-		if(strstr(matched, data_cond_open_prefix) == matched) {
-			is_condition = 1;
-			printf("Data '%s' has condition prefix\n", matched);
+		if(strstr(matched_copy, data_cond_open_prefix) == matched_copy) {
+			is_condition_pre = 1;
+
+			/* printf("Element '%s' has condition prefix at (%u)\n", matched_copy, (unsigned)matched_start); */
 
 			// 1) Get the closing element {{/data}}
-			// 2) Replace any placeholders in between the match
-			// 3) Set the data_inside to the replace inner text
-			data_inside = "test";
+			int closing_len =
+				strlen(open) +
+				strlen(data_cond_close_prefix) +
+				strlen(matched_copy) + strlen(data_cond_open_prefix) +
+				strlen(close);
+
+			char closing_text[closing_len + 1];
+			memset(closing_text, 0, closing_len + 1);
+			strcpy(closing_text, open);
+			strcat(closing_text, data_cond_close_prefix);
+			strcat(closing_text, matched_copy + strlen(data_cond_open_prefix));
+			strcat(closing_text, close);
+
+			char* closing_instance = strstr(matched_start, closing_text);
+			// TODO: Add support for placeholder with no end
+			/* if(closing_instance == NULL) { */
+			/* 	closing_instance = matched_start + strlen(matched_copy); */
+			/* } */
+
+			/* printf("Closing element %s found at (%u) %s.\n", closing_text, (unsigned)closing_instance, closing_instance); */
+
+			// 2) Get the data the placeholders
+			char* data_inside_start = matched_start + strlen(matched_copy) + strlen(open);
+			int data_inside_len = (unsigned)closing_instance - (unsigned)data_inside_start;
+			char data_inside[data_inside_len + 1];
+			memset(data_inside, 0, data_inside_len + 1);
+			strncpy(data_inside, data_inside_start, data_inside_len);
+
+			// 3) Set the data to the replace inner text
+			// Append to the existing data
+			int new_data_len = data_inside_len;
+			if(data) new_data_len += strlen(data);
+
+			char* new_data = malloc(new_data_len + 1);
+			memset(new_data, 0, new_data_len + 1);
+			if(data) strcpy(new_data, data);
+			strcat(new_data, data_inside);
+			if(data) free(data);
+			data = new_data;
+
+			// 4) Reset match_len so we actually have the whole match
+			match_len = ((unsigned)closing_instance + closing_len) - (unsigned)matched_start - strlen(open) - strlen(close);
 		}
 
+		/* if(data) printf("Data: '%s'\n", data); */
+
 		// Reassemble the entire placeholder and replace it
-		char toreplace[strlen(open) + strlen(matched) + strlen(close) + 1];
+		/* printf("match_len: '%u'\n", match_len); */
+		char toreplace[strlen(open) + match_len + strlen(close) + 1];
 		strcpy(toreplace, open);
-		strcat(toreplace, matched);
+		strncat(toreplace, matched_start, match_len);
 		strcat(toreplace, close);
+		/* printf("toreplace: '%s'\n", toreplace); */
+
+		// TODO: Need to compare to the actual end of the string or a var "cat" would also match for "cats_ass"
+		char* startofkey = matched_copy;
+		if(is_condition_pre) {
+			startofkey += strlen(data_cond_open_prefix);
+		}
+
+		/* printf("startokey: '%s'\n", startofkey); */
 
 		// Get the token value from the input data
 		unsigned int i = 0;
 		for(; i < len; ++i) {
-			unsigned int keylen = strlen(data_open) + strlen(keys[i]);
+			unsigned int keylen = strlen(keys[i]);
 			char key[keylen + 1];
-			strcpy(key, data_open);
-			strcat(key, keys[i]);
+			strcpy(key, keys[i]);
+			/* printf("key: '%s'\n", key); */
 
-			if(strncmp(matched, key, keylen) == 0) {
+			int cmp_res = strncmp(startofkey, key, keylen);
+			if(cmp_res == 0) {
+				/* printf("FOUND\n"); */
+
 				// TODO: Store the match and do the replacement later (if not a condition)
-				char* replaced = str_replace(output, toreplace, values[i]);
+				char* replaced;
+				if(data) {
+					/* printf("HAVE DATA\n"); */
+					if(values[i]) {
+						/* printf("TRUE VALUE\n"); */
+						replaced = str_replace(output, toreplace, data);
+					} else {
+						/* printf("FALSE VALUE\n"); */
+						continue;
+					}
+				} else {
+					/* printf("SUB VALUE\n"); */
+					replaced = str_replace(output, toreplace, values[i]);
+				}
+
 				free(output);
 				output = replaced;
 				break;
 			}
 		}
+
+		if(data) free(data);
 
 		// If the key wasn't found
 		if(i >= len) {

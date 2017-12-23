@@ -79,14 +79,16 @@ void spec_render_template5(void)
 	const char *data[] = {
 		"ph1", "awesome",
 		"ph2", " is running",
+		"varwcondition", "",
+		"separator", "",
 	};
-	const char* template = "My {{ph1}} test{{ph2}}{{#emptyph}} {{test123 testing 1 2 ummm 12}}{{#startandseparator bob loblaw}}";
+	const char* template = "My {{ph1}} test{{ph2}}{{emptyph}} {{test123 testing 1 2 ummm 12}}{{separator bob loblaw}}{{#varwcondition}}Some datas{{/varwcondition}} abc123 test test test";
 
 	/* act */
-	char* rendered = render_template(template, 2, data);
+	char* rendered = render_template(template, 4, data);
 
 	/* assert */
-	sp_assert_equal_s(rendered, "My awesome test is running ");
+	sp_assert_equal_s(rendered, "My awesome test is running bob loblawSome datas abc123 test test test");
 
 	free(rendered);
 }
