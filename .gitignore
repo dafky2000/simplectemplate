@@ -5,3 +5,4 @@
 */*.o
 */*.so
 */*.gc*
+autom4te.cache
