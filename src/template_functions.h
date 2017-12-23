@@ -47,8 +47,8 @@ struct RenderOptions {
  * options: RenderOptions structure with values for rendering templates
  * returns: rendered template, null terminated
  */
-char* my_render_template (const char* template_data, int len, const char* data[], struct RenderOptions options);
-char* render_template (const char* template_data, int len, const char* data[]);
+char* my_render_template (const char* template_data, unsigned long len, const char* data[], struct RenderOptions options);
+char* render_template (const char* template_data, unsigned long len, const char* data[]);
 
 /**
  * Render a template with arrays of key/value pairs from a file
@@ -59,7 +59,7 @@ char* render_template (const char* template_data, int len, const char* data[]);
  * options: RenderOptions structure with values for rendering templates
  * returns: rendered template, null terminated
  */
-char* my_render_template_file (const char* filename, int len, const char* data[], struct RenderOptions options);
-char* render_template_file (const char* filename, int len, const char* data[]);
+char* my_render_template_file (const char* filename, unsigned long len, const char* data[], struct RenderOptions options);
+char* render_template_file (const char* filename, unsigned long len, const char* data[]);
 
 #endif
