@@ -211,6 +211,11 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 	if(data_cond_open_prefix == NULL) data_cond_open_prefix = "#";
 	if(data_cond_close_prefix == NULL) data_cond_close_prefix = "/";
 
+	char close_and_data_cond_separator[strlen(close) + strlen(data_cond_separator) + 1];
+	memset(close_and_data_cond_separator, 0, strlen(close) + strlen(data_cond_separator)+ 1);
+	strncpy(close_and_data_cond_separator, close, strlen(close));
+	strncat(close_and_data_cond_separator, data_cond_separator, strlen(data_cond_separator));
+
 	// Create a copy of the template to work with
 	unsigned long template_length = strlen(template_data) + 1;
 	char* output = malloc(template_length);
@@ -264,7 +269,6 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 			strcat(closing_text, close);
 
 			char* closing_instance = strstr(matched_start, closing_text);
-			// TODO: Add support for placeholder with no end
 			if(closing_instance != NULL) {
 				// 2) Get the data the placeholders
 				char* data_inside_start = matched_start + strlen(matched_copy) + strlen(open);
@@ -301,7 +305,6 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 		strcat(toreplace, close);
 		/* printf("toreplace: '%s'\n", toreplace); */
 
-		// TODO: Need to compare to the actual end of the string or a var "cat" would also match for "cats_ass"
 		char* startofkey = matched_copy;
 		if(is_condition_pre) {
 			startofkey += strlen(data_cond_open_prefix);
@@ -317,7 +320,8 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 			strcpy(key, keys[i]);
 			/* printf("key: '%s'\n", key); */
 
-			int cmp_res = strncmp(startofkey, key, keylen);
+			char* token = strtok(startofkey, close_and_data_cond_separator);
+			int cmp_res = strcmp(token, key);
 			if(cmp_res == 0) {
 				/* printf("FOUND\n"); */
 				char* replaced;

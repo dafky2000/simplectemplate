@@ -100,9 +100,9 @@ void spec_render_template6(void)
 		"noclosingbrace", "",
 		"open", "true",
 		"inner", " ---- ",
-		"insideopen", " ",
+		"inneropen", " ",
 	};
-	const char* template = "Just a test for {{#noclosingbrace}}, lets see {{#open}}blah blah blah {{inner}} blah blah blah {{#insideopen}} bob loblaw {{/insideopen}}{{/open}}what {{#notpresent}} dsadas {{/notpresent}}happens!";
+	const char* template = "Just a test for {{#noclosingbrace}}, lets see {{#open}}blah blah blah {{inner}} blah blah blah {{#inneropen}} bob loblaw {{/inneropen}}{{/open}}what {{#notpresent}} dsadas {{/notpresent}}happens!";
 
 	/* act */
 	char* rendered = render_template(template, 4, data);
@@ -120,9 +120,9 @@ void spec_render_template7(void)
 		"noclosingbrace", "",
 		"open", "true",
 		"inner", " ---- ",
-		"insideopen", NULL,
+		"inneropen", NULL,
 	};
-	const char* template = "Just a test for {{#noclosingbrace}}, lets see {{#open}}blah blah blah {{inner}} blah blah blah {{#insideopen}} bob loblaw {{/insideopen}}{{/open}}what happens!";
+	const char* template = "Just a test for {{#noclosingbrace}}, lets see {{#open}}blah blah blah {{inner}} blah blah blah {{#inneropen}} bob loblaw {{/inneropen}}{{/open}}what happens!";
 
 	/* act */
 	char* rendered = render_template(template, 4, data);
