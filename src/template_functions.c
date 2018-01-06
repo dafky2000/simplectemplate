@@ -265,33 +265,30 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 
 			char* closing_instance = strstr(matched_start, closing_text);
 			// TODO: Add support for placeholder with no end
-			/* if(closing_instance == NULL) { */
-			/* 	closing_instance = matched_start + strlen(matched_copy); */
-			/* } */
+			if(closing_instance != NULL) {
+				// 2) Get the data the placeholders
+				char* data_inside_start = matched_start + strlen(matched_copy) + strlen(open);
+				unsigned long data_inside_len = (unsigned long)closing_instance - (unsigned long)data_inside_start;
+				char data_inside[data_inside_len + 1];
+				memset(data_inside, 0, data_inside_len + 1);
+				strncpy(data_inside, data_inside_start, data_inside_len);
 
-			/* printf("Closing element %s found at (%u) %s.\n", closing_text, (unsigned long)closing_instance, closing_instance); */
+				// 3) Set the data to the replace inner text
+				// Append to the existing data
+				unsigned long new_data_len = data_inside_len;
+				if(data) new_data_len += strlen(data);
 
-			// 2) Get the data the placeholders
-			char* data_inside_start = matched_start + strlen(matched_copy) + strlen(open);
-			unsigned long data_inside_len = (unsigned long)closing_instance - (unsigned long)data_inside_start;
-			char data_inside[data_inside_len + 1];
-			memset(data_inside, 0, data_inside_len + 1);
-			strncpy(data_inside, data_inside_start, data_inside_len);
+				char* new_data = malloc(new_data_len + 1);
+				memset(new_data, 0, new_data_len + 1);
+				if(data) strcpy(new_data, data);
+				strcat(new_data, data_inside);
+				if(data) free(data);
+				data = new_data;
 
-			// 3) Set the data to the replace inner text
-			// Append to the existing data
-			unsigned long new_data_len = data_inside_len;
-			if(data) new_data_len += strlen(data);
+				// 4) Set match_len so we have the whole match
+				match_len = ((unsigned long)closing_instance + closing_len) - (unsigned long)matched_start - strlen(open) - strlen(close);
 
-			char* new_data = malloc(new_data_len + 1);
-			memset(new_data, 0, new_data_len + 1);
-			if(data) strcpy(new_data, data);
-			strcat(new_data, data_inside);
-			if(data) free(data);
-			data = new_data;
-
-			// 4) Reset match_len so we actually have the whole match
-			match_len = ((unsigned long)closing_instance + closing_len) - (unsigned long)matched_start - strlen(open) - strlen(close);
+			}
 		}
 
 		/* if(data) printf("Data: '%s'\n", data); */
@@ -326,12 +323,12 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 				char* replaced;
 				if(data) {
 					/* printf("HAVE DATA\n"); */
-					if(values[i]) {
+					if(values[i] && strlen(values[i])) {
 						/* printf("TRUE VALUE\n"); */
 						replaced = str_replace(output, toreplace, data);
 					} else {
 						/* printf("FALSE VALUE\n"); */
-						continue;
+						replaced = str_replace(output, toreplace, "");
 					}
 				} else {
 					/* printf("SUB VALUE\n"); */
