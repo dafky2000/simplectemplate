@@ -68,7 +68,7 @@ char *template = render_template("<!DOCTYPE html> \n\
     <p>In the short term future, this will be the same sytax for looped data</p> \n\
     {{/is_not_error}} \n\
   </body> \n\
-</html>", 2, data);
+</html>", 5, data);
 
 printf("%s\n", template);
 ```
@@ -118,7 +118,7 @@ char *template = my_render_template("<!DOCTYPE html> \n\
     <p>In the short term future, this will be the same sytax for looped data</p> \n\
     $[[-is_not_error]] \n\
   </body> \n\
-</html>", 2, data, (struct RenderOptions){.placeholder_open="$[[", .placeholder_close="]]", .data_cond_open_prefix="?", .data_cond_close_prefix="-", .data_cond_separator=" "});
+</html>", 5, data, (struct RenderOptions){.placeholder_open="$[[", .placeholder_close="]]", .data_cond_open_prefix="?", .data_cond_close_prefix="-", .data_cond_separator=" "});
 
 printf("%s\n", template);
 ```
