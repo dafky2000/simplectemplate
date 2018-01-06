@@ -102,7 +102,7 @@ void spec_render_template6(void)
 		"inner", " ---- ",
 		"insideopen", " ",
 	};
-	const char* template = "Just a test for {{#noclosingbrace}}, lets see {{#open}}blah blah blah {{inner}} blah blah blah {{#insideopen}} bob loblaw {{/insideopen}}{{/open}}what happens!";
+	const char* template = "Just a test for {{#noclosingbrace}}, lets see {{#open}}blah blah blah {{inner}} blah blah blah {{#insideopen}} bob loblaw {{/insideopen}}{{/open}}what {{#notpresent}} dsadas {{/notpresent}}happens!";
 
 	/* act */
 	char* rendered = render_template(template, 4, data);
