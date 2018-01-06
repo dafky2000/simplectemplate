@@ -1,5 +1,5 @@
 bin_PROGRAMS=simplecgen
-AM_CFLAGS= -std=gnu11 -Wall -pedantic -g -I../../../src
+AM_CFLAGS= -std=c99 -Wall -pedantic -g -I../../../src
 simplecgen_SOURCES=			simplecgen.c ../../../src/template_functions.c
 
 PACKAGE = @PACKAGE@
