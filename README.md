@@ -3,7 +3,7 @@ Master: [![Build Status](https://travis-ci.org/dafky2000/simplectemplate.svg?bra
 
 Develop: [![Build Status](https://travis-ci.org/dafky2000/simplectemplate.svg?branch=develop)](https://travis-ci.org/dafky2000/simplectemplate) [![Coverage Status](https://coveralls.io/repos/github/dafky2000/simplectemplate/badge.svg?branch=develop)](https://coveralls.io/github/dafky2000/simplectemplate)
 
-Simple C Template library to expand placeholders in a template string, simple alternative to mustache.github.io that doesn't require JSON as data input. The main focus of this project is accessibility, making it easy and fast to hack into any project.
+Simple C Template library to expand placeholders in a template string, simple alternative to mustache.github.io that doesn't require JSON as data input. The main focus of this project is accessibility, making it easy and fast to hack into any project. Aiming to support native mustache format.
 
 ## Building and running examples / tests
 ```sh
@@ -29,8 +29,12 @@ Say you want to generate an HTML file from the template below in C:
     <title>{{title}}</title>
   </head>
   <body>
-    <h1>{{title}}</h1>
+    <h1 class="{{is_error error_class}}">{{title}}</h1>
     {{body}}
+    {{#is_not_error}}
+    <p>In addition to the is_error above with space separating the data, simplectemplate also supports opening and closing braces like this! One step closer to supporting mustache formatted templates!</p>
+    <p>In the short term future, this will be the same sytax for looped data</p>
+    {{/is_not_error}}
   </body>
 </html>
 ```
@@ -41,8 +45,11 @@ Example code:
 
 ```c
 const char *data[] = {
-	"title", "My super cool website",
-	"body", "Put whatever you want in the body! Heck, even another rendered template ;)"
+  "title", "My super cool website",
+  "body", "Put whatever you want in the body! Heck, even another rendered template ;)"
+  "is_error", "true or anything other than NULL or empty string",
+  "is_not_error", NULL, // "Evaluates" to false
+  "is_not_error", "", // Also "evaluates" to false
 };
 
 // Render the template and replace the template variables
@@ -54,18 +61,45 @@ char *template = render_template("<!DOCTYPE html> \n\
     <title>{{title}}</title> \n\
   </head> \n\
   <body> \n\
-    <h1>{{title}}</h1> \n\
+    <h1 class="{{is_error error_class}}">{{title}}</h1> \n\
     {{body}} \n\
+    {{#is_not_error}} \n\
+    <p>In addition to the is_error above with space separating the data, simplectemplate also supports opening and closing braces like this! One step closer to supporting mustache formatted templates!</p> \n\
+    <p>In the short term future, this will be the same sytax for looped data</p> \n\
+    {{/is_not_error}} \n\
   </body> \n\
-</html>", 2, data);
+</html>", 5, data);
 
 printf("%s\n", template);
 ```
-__OR__
+
+Renders to:
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My super cool website</title>
+  </head>
+  <body>
+    <h1 class="error_class">My super cool website</h1>
+    Put whatever you want in the body! Heck, even another rendered template ;)
+
+  </body>
+</html>
+```
+
+# RenderOptions - Custom opening/closing/condition prefix, condition separator, and end-block prefixes...
+
 ```c
 const char *data[] = {
-	"title", "My super cool website",
-	"body", "Put whatever you want in the body! Heck, even another rendered template ;)"
+  "title", "My super cool website",
+  "body", "Put whatever you want in the body! Heck, even another rendered template ;)"
+  "is_error", "true or anything other than NULL or empty string",
+  "is_not_error", NULL, // "Evaluates" to false
+  "is_not_error", "", // Also "evaluates" to false
 };
 
 // Render the template and replace the template variables
@@ -74,21 +108,29 @@ char *template = my_render_template("<!DOCTYPE html> \n\
   <head> \n\
     <meta charset="UTF-8"> \n\
     <meta name="viewport" content="width=device-width, initial-scale=1" /> \n\
-    <title>${{data.title}}</title> \n\
+    <title>$[[data.title]]</title> \n\
   </head> \n\
   <body> \n\
-    <h1>${{data.title}}</h1> \n\
-    ${{data.body}} \n\
+    <h1 class="$[[is_error error_class]]">$[[title]]</h1> \n\
+    $[[body]] \n\
+    $[[?is_not_error]] \n\
+    <p>In addition to the is_error above with space separating the data, simplectemplate also supports opening and closing braces like this! One step closer to supporting mustache formatted templates!</p> \n\
+    <p>In the short term future, this will be the same sytax for looped data</p> \n\
+    $[[-is_not_error]] \n\
   </body> \n\
-</html>", 2, data, (struct RenderOptions){.placeholder_open="${{data.", .placeholder_close="}}"});
+</html>", 5, data, (struct RenderOptions){.placeholder_open="$[[", .placeholder_close="]]", .data_cond_open_prefix="?", .data_cond_close_prefix="-", .data_cond_separator=" "});
 
 printf("%s\n", template);
 ```
-__OR__
+
+# Helper functions
+
+## Render from file
+
 ```c
 const char *data[] = {
-	"title", "My super cool website",
-	"body", "Put whatever you want in the body! Heck, even another rendered template ;)"
+  "title", "My super cool website",
+  "body", "Put whatever you want in the body! Heck, even another rendered template ;)"
 };
 
 // Render the template and replace the template variables
@@ -101,14 +143,14 @@ Outputs:
 ```html
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>My super cool website</title>
-	</head>
-	<body>
-		<h1>My super cool website</h1>
-		Put whatever you want in the body! Heck, even another rendered template ;)
-	</body>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My super cool website</title>
+  </head>
+  <body>
+    <h1>My super cool website</h1>
+    Put whatever you want in the body! Heck, even another rendered template ;)
+  </body>
 </html>
 ```

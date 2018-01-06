@@ -84,9 +84,9 @@ STATIC char* str_replace(char* orig, const char* rep, const char* with) {
 	char* result;  // the return string
 	char* ins;     // the next insert point
 	char* tmp;     // varies
-	int len_rep;   // length of rep (the string to remove)
-	int len_with;  // length of with (the string to replace rep with)
-	int count;     // number of replacements
+	unsigned long len_rep;   // length of rep (the string to remove)
+	unsigned long len_with;  // length of with (the string to replace rep with)
+	unsigned long count;     // number of replacements
 
 	// sanity checks and initialization
 	if(!orig || !rep) return NULL;
@@ -113,7 +113,7 @@ STATIC char* str_replace(char* orig, const char* rep, const char* with) {
 	//    orig points to the remainder of orig after "end of rep"
 	while(count--) {
 			ins = strstr(orig, rep);
-			int len_front = ins - orig;
+			unsigned long len_front = ins - orig;
 			tmp = strncpy(tmp, orig, len_front) + len_front;
 			tmp = strcpy(tmp, with) + len_with;
 			orig += len_front + len_rep; // move to next "end of rep"
@@ -124,7 +124,7 @@ STATIC char* str_replace(char* orig, const char* rep, const char* with) {
 }
 
 STATIC const char* get_last_token(const char* current, unsigned int token_count, const char* tokens[]) {
-	unsigned int remaining_len = strlen(current);
+	unsigned long remaining_len = strlen(current);
 	const char* next_token = &current[remaining_len];
 	const char* last_delimiter = NULL;
 
@@ -143,7 +143,7 @@ STATIC const char* get_last_token(const char* current, unsigned int token_count,
 }
 
 STATIC const char* my_strtok(const char* current, unsigned int token_count, const char* tokens[]) {
-	unsigned int remaining_len = strlen(current);
+	unsigned long remaining_len = strlen(current);
 	const char* next_token = &current[remaining_len];
 
 	unsigned int i = 0;
@@ -162,7 +162,7 @@ STATIC const char* my_strtok(const char* current, unsigned int token_count, cons
 	return NULL;
 }
 
-STATIC int get_surrounded_with(const char* template, const char* open, const char* close, int* start, int* length) {
+STATIC unsigned int get_surrounded_with(const char* template, const char* open, const char* close, long* start, long* length) {
 	*start = -1;
 	*length = -1;
 
@@ -188,10 +188,10 @@ STATIC int get_surrounded_with(const char* template, const char* open, const cha
 	return 0;
 }
 
-char* my_render_template(const char* template_data, int len, const char* data[], struct RenderOptions options) {
+char* my_render_template(const char* template_data, unsigned long len, const char* data[], struct RenderOptions options) {
 	const char* keys[len];
 	const char* values[len];
-	unsigned int i;
+	unsigned long i;
 	for(i = 0; i < len; i++) {
 		keys[i] = (char *)data[i*2];
 		values[i] = (char *)data[i*2+1];
@@ -200,42 +200,154 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 	// Get the options and set defaults if they aren't set.
 	const char* open = options.placeholder_open;
 	const char* close = options.placeholder_close;
-	const char* data_open = options.data_open;
+	const char* data_cond_separator = options.data_cond_separator;
+	const char* data_cond_open_prefix = options.data_cond_open_prefix;
+	const char* data_cond_close_prefix = options.data_cond_close_prefix;
 
+	// Setup defaults
 	if(open == NULL) open = "{{";
 	if(close == NULL) close = "}}";
-	if(data_open == NULL) data_open = "";
+	if(data_cond_separator == NULL) data_cond_separator = " ";
+	if(data_cond_open_prefix == NULL) data_cond_open_prefix = "#";
+	if(data_cond_close_prefix == NULL) data_cond_close_prefix = "/";
 
-	int template_length = strlen(template_data) + 1;
+	char close_and_data_cond_separator[strlen(close) + strlen(data_cond_separator) + 1];
+	memset(close_and_data_cond_separator, 0, strlen(close) + strlen(data_cond_separator)+ 1);
+	strncpy(close_and_data_cond_separator, close, strlen(close));
+	strncat(close_and_data_cond_separator, data_cond_separator, strlen(data_cond_separator));
+
+	// Create a copy of the template to work with
+	unsigned long template_length = strlen(template_data) + 1;
 	char* output = malloc(template_length);
 	strcpy(output, template_data);
 
-	int start = -1, length = -1;
-	while(get_surrounded_with(output, open, close, &start, &length)) {
-		char matched[length+1];
-		memset(matched, 0, length + 1);
-		strncpy(matched, output + start, length);
+	long start = 0, match_len = 0;
+	while(get_surrounded_with(output, open, close, &start, &match_len)) {
+		char* matched_start = output + start;
 
-		char toreplace[strlen(open) + strlen(matched) + strlen(close) + 1];
+		// Get the match, inside the open and close braces
+		char matched_copy[match_len+1];
+		memset(matched_copy, 0, match_len + 1);
+		strncpy(matched_copy, matched_start, match_len);
+
+		/* int is_condition_sep = 0; */
+		int is_condition_pre = 0;
+		char* data = NULL;
+
+		// If we have the separator
+		char* data_separated = strstr(matched_copy, data_cond_separator);
+		if(data_separated != NULL) {
+			/* is_condition_sep = 1; */
+			data_separated += strlen(data_cond_separator);
+
+			// Copy the separated data to the data
+			data = malloc(strlen(data_separated) + 1);
+			memset(data, 0, strlen(data_separated) + 1);
+			strcpy(data, data_separated);
+
+			/* printf("Element '%s' has condition separator, value = '%s'\n", matched_copy, data); */
+		}
+
+		// If we start with a condition
+		if(strstr(matched_copy, data_cond_open_prefix) == matched_copy) {
+			is_condition_pre = 1;
+
+			/* printf("Element '%s' has condition prefix at (%u)\n", matched_copy, (unsigned)matched_start); */
+
+			// 1) Get the closing element {{/data}}
+			unsigned long closing_len =
+				strlen(open) +
+				strlen(data_cond_close_prefix) +
+				strlen(matched_copy) + strlen(data_cond_open_prefix) +
+				strlen(close);
+
+			char closing_text[closing_len + 1];
+			memset(closing_text, 0, closing_len + 1);
+			strcpy(closing_text, open);
+			strcat(closing_text, data_cond_close_prefix);
+			strcat(closing_text, matched_copy + strlen(data_cond_open_prefix));
+			strcat(closing_text, close);
+
+			char* closing_instance = strstr(matched_start, closing_text);
+			if(closing_instance != NULL) {
+				// 2) Get the data the placeholders
+				char* data_inside_start = matched_start + strlen(matched_copy) + strlen(open);
+				unsigned long data_inside_len = (unsigned long)closing_instance - (unsigned long)data_inside_start;
+				char data_inside[data_inside_len + 1];
+				memset(data_inside, 0, data_inside_len + 1);
+				strncpy(data_inside, data_inside_start, data_inside_len);
+
+				// 3) Set the data to the replace inner text
+				// Append to the existing data
+				unsigned long new_data_len = data_inside_len;
+				if(data) new_data_len += strlen(data);
+
+				char* new_data = malloc(new_data_len + 1);
+				memset(new_data, 0, new_data_len + 1);
+				if(data) strcpy(new_data, data);
+				strcat(new_data, data_inside);
+				if(data) free(data);
+				data = new_data;
+
+				// 4) Set match_len so we have the whole match
+				match_len = ((unsigned long)closing_instance + closing_len) - (unsigned long)matched_start - strlen(open) - strlen(close);
+
+			}
+		}
+
+		/* if(data) printf("Data: '%s'\n", data); */
+
+		// Reassemble the entire placeholder and replace it
+		/* printf("match_len: '%u'\n", match_len); */
+		char toreplace[strlen(open) + match_len + strlen(close) + 1];
 		strcpy(toreplace, open);
-		strcat(toreplace, matched);
+		strncat(toreplace, matched_start, match_len);
 		strcat(toreplace, close);
+		/* printf("toreplace: '%s'\n", toreplace); */
 
+		char* startofkey = matched_copy;
+		if(is_condition_pre) {
+			startofkey += strlen(data_cond_open_prefix);
+		}
+
+		/* printf("startokey: '%s'\n", startofkey); */
+
+		// Get the token value from the input data
 		unsigned int i = 0;
 		for(; i < len; ++i) {
-			unsigned int keylen = strlen(data_open) + strlen(keys[i]);
+			unsigned int keylen = strlen(keys[i]);
 			char key[keylen + 1];
-			strcpy(key, data_open);
-			strcat(key, keys[i]);
+			strcpy(key, keys[i]);
+			/* printf("key: '%s'\n", key); */
 
-			if(strncmp(matched, key, keylen) == 0) {
-				char* replaced = str_replace(output, toreplace, values[i]);
+			char* token = strtok(startofkey, close_and_data_cond_separator);
+			int cmp_res = strcmp(token, key);
+			if(cmp_res == 0) {
+				/* printf("FOUND\n"); */
+				char* replaced;
+				if(data) {
+					/* printf("HAVE DATA\n"); */
+					if(values[i] && strlen(values[i])) {
+						/* printf("TRUE VALUE\n"); */
+						replaced = str_replace(output, toreplace, data);
+					} else {
+						/* printf("FALSE VALUE\n"); */
+						replaced = str_replace(output, toreplace, "");
+					}
+				} else {
+					/* printf("SUB VALUE\n"); */
+					replaced = str_replace(output, toreplace, values[i]);
+				}
+
 				free(output);
 				output = replaced;
 				break;
 			}
 		}
 
+		if(data) free(data);
+
+		// If the key wasn't found
 		if(i >= len) {
 			char* replaced = str_replace(output, toreplace, "");
 			free(output);
@@ -246,11 +358,11 @@ char* my_render_template(const char* template_data, int len, const char* data[],
 	return output;
 }
 
-char* render_template(const char* template_data, int len, const char* data[]) {
+char* render_template(const char* template_data, unsigned long len, const char* data[]) {
 	return my_render_template(template_data, len, data, (struct RenderOptions){});
 }
 
-char* my_render_template_file(const char* filename, int len, const char* data[], struct RenderOptions options) {
+char* my_render_template_file(const char* filename, unsigned long len, const char* data[], struct RenderOptions options) {
 	char* contents = read_file_contents(filename);
 	if(!contents) return NULL;
 
@@ -260,6 +372,6 @@ char* my_render_template_file(const char* filename, int len, const char* data[],
 	return rendered;
 }
 
-char* render_template_file(const char* filename, int len, const char* data[]) {
+char* render_template_file(const char* filename, unsigned long len, const char* data[]) {
 	return my_render_template_file(filename, len, data, (struct RenderOptions){});
 }
