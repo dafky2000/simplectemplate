@@ -45,8 +45,8 @@ Example code:
 
 ```c
 const char *data[] = {
-	"title", "My super cool website",
-	"body", "Put whatever you want in the body! Heck, even another rendered template ;)"
+  "title", "My super cool website",
+  "body", "Put whatever you want in the body! Heck, even another rendered template ;)"
   "is_error", "true or anything other than NULL or empty string",
   "is_not_error", NULL, // "Evaluates" to false
   "is_not_error", "", // Also "evaluates" to false
@@ -95,8 +95,8 @@ Renders to:
 
 ```c
 const char *data[] = {
-	"title", "My super cool website",
-	"body", "Put whatever you want in the body! Heck, even another rendered template ;)"
+  "title", "My super cool website",
+  "body", "Put whatever you want in the body! Heck, even another rendered template ;)"
   "is_error", "true or anything other than NULL or empty string",
   "is_not_error", NULL, // "Evaluates" to false
   "is_not_error", "", // Also "evaluates" to false
@@ -129,8 +129,8 @@ printf("%s\n", template);
 
 ```c
 const char *data[] = {
-	"title", "My super cool website",
-	"body", "Put whatever you want in the body! Heck, even another rendered template ;)"
+  "title", "My super cool website",
+  "body", "Put whatever you want in the body! Heck, even another rendered template ;)"
 };
 
 // Render the template and replace the template variables
@@ -143,14 +143,14 @@ Outputs:
 ```html
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>My super cool website</title>
-	</head>
-	<body>
-		<h1>My super cool website</h1>
-		Put whatever you want in the body! Heck, even another rendered template ;)
-	</body>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My super cool website</title>
+  </head>
+  <body>
+    <h1>My super cool website</h1>
+    Put whatever you want in the body! Heck, even another rendered template ;)
+  </body>
 </html>
 ```
