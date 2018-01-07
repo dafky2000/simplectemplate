@@ -112,11 +112,11 @@ STATIC char* str_replace(char* orig, const char* rep, const char* with) {
 	//    ins points to the next occurrence of rep in orig
 	//    orig points to the remainder of orig after "end of rep"
 	while(count--) {
-			ins = strstr(orig, rep);
-			unsigned long len_front = ins - orig;
-			tmp = strncpy(tmp, orig, len_front) + len_front;
-			tmp = strcpy(tmp, with) + len_with;
-			orig += len_front + len_rep; // move to next "end of rep"
+		ins = strstr(orig, rep);
+		unsigned long len_front = ins - orig;
+		tmp = strncpy(tmp, orig, len_front) + len_front;
+		tmp = strcpy(tmp, with) + len_with;
+		orig += len_front + len_rep; // move to next "end of rep"
 	}
 	strcpy(tmp, orig);
 
@@ -211,10 +211,11 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 	if(data_cond_open_prefix == NULL) data_cond_open_prefix = "#";
 	if(data_cond_close_prefix == NULL) data_cond_close_prefix = "/";
 
-	char close_and_data_cond_separator[strlen(close) + strlen(data_cond_separator) + 1];
-	memset(close_and_data_cond_separator, 0, strlen(close) + strlen(data_cond_separator)+ 1);
-	strncpy(close_and_data_cond_separator, close, strlen(close));
-	strncat(close_and_data_cond_separator, data_cond_separator, strlen(data_cond_separator));
+	char close_and_data_cond_separator[strlen(close) + strlen(data_cond_separator) + 2]; // +1 for . and +1 for null
+	memset(close_and_data_cond_separator, 0, strlen(close) + strlen(data_cond_separator) + 2); // +1 for . and +1 for null
+	strcpy(close_and_data_cond_separator, close);
+	strcat(close_and_data_cond_separator, data_cond_separator);
+	strcat(close_and_data_cond_separator, ".");
 
 	// Create a copy of the template to work with
 	unsigned long template_length = strlen(template_data) + 1;
