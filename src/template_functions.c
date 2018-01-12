@@ -32,6 +32,200 @@
 #include "template_functions.h"
 #endif
 
+typedef struct RenderOptions {
+	const char* placeholder_open;       // "{{"
+	const char* placeholder_close;      // "}}"
+	const char* data_cond_separator;    // " " If a separator is defined than we assume the structure {{cond data}}
+	const char* data_cond_open_prefix;  // "#" If a prefix is defined than we assume this is {{#cond}} data {{/cond}} (mustache style)
+	const char* data_cond_close_prefix; // "/"
+} renderoptions;
+
+typedef struct Vector {
+	void** data;
+	size_t capacity; /* total capacity */
+	size_t size; /* number of elements in vector */
+} vector;
+
+typedef struct MultiMap {
+	const char* key;
+	vector* data;
+	struct MultiMap* first;
+	struct MultiMap* next;
+	struct MultiMap* previous;
+} multimap;
+
+STATIC int vector_grow(vector* v, size_t add_capacity) {
+	unsigned int new_size = v->capacity + add_capacity;
+
+	void* new_vector = (void*)realloc(*(v->data), new_size * sizeof(void*));
+	// Out of memory
+	if(!new_vector) {
+		return -1;
+	}
+
+	// Assign the new pointer
+	*(v->data) = new_vector;
+
+	// New capacity
+	v->capacity = new_size;
+
+	return 0;
+}
+
+STATIC int vector_init(vector* v, size_t init_capacity) {
+	memset(v, 0, sizeof(vector));
+
+	v->data = malloc(sizeof(void*));
+
+	// Out of memory
+	if (!v->data) {
+		return -1;
+	}
+
+	*(v->data) = malloc(init_capacity * sizeof(void*));
+	v->size = 0;
+	v->capacity = init_capacity;
+
+	// Out of memory
+	if (!*(v->data)) {
+		return -1;
+	}
+
+	return 0; /* success */
+}
+
+STATIC int vector_push_back(vector* v, void* element) {
+	if(v->size >= v->capacity) {
+		if(vector_grow(v, 10) != 0) {
+			return -1;
+		}
+	}
+
+	// Add the element to the next memory location
+	void* data = *(v->data);
+	void* next_loc = data + v->size * sizeof(void*);
+	memcpy(next_loc, element, sizeof(void*));
+	v->size++;
+
+	return 0;
+}
+
+STATIC void vector_free(vector* v) {
+	if(v) {
+		if(v->data) {
+			void* data = *(v->data);
+			if(data) {
+				free(data);
+			}
+
+			free(v->data);
+		}
+
+		free(v);
+	}
+}
+
+STATIC int multimap_init(multimap* mm) {
+	memset(mm, 0, sizeof(multimap));
+
+	mm->data = malloc(sizeof(vector));
+	// Could not allocate the memory
+	if(vector_init(mm->data, 10) != 0) {
+		return -1;
+	}
+
+	mm->first = NULL;
+	mm->next = NULL;
+	mm->previous = NULL;
+
+	return 0;
+}
+
+STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
+	multimap* current = mm->first;
+	if(!current) {
+		mm->key = key;
+
+		// Add the value to the vector
+		if(vector_push_back(mm->data, (char*)value) != 0) {
+			return -1;
+		}
+
+		mm->first = mm;
+		mm->next = NULL;
+		mm->previous = NULL;
+	} else {
+		// Goto the end of the MultiMap or add this value if the key is found
+		while(current) {
+			if(strcmp(current->key, key) == 0) {
+				// Add the value to the vector
+				if(vector_push_back(current->data, (char*)value) != 0) {
+					return -1;
+				}
+
+				return 0;
+			}
+
+			if(!current->next) break;
+
+			current = current->next;
+		}
+
+		// Create a new MultiMap structure and put it at the end
+		multimap* new_multimap = malloc(sizeof(multimap));
+		// Out of memory
+		if(multimap_init(new_multimap) != 0) {
+			return -1;
+		}
+
+		new_multimap->key = key;
+
+		// Add the value to the vector
+		if(vector_push_back(new_multimap->data, (char*)value) != 0) {
+			return -1;
+		}
+
+		new_multimap->first = current->first;
+		new_multimap->next = NULL;
+		new_multimap->previous = current;
+
+		current->next = new_multimap;
+	}
+
+	return 0;
+}
+
+STATIC unsigned int multimap_get_count(multimap* mm, const char* key) {
+	multimap* current = mm->first;
+
+	while(current) {
+		if(strcmp(current->key, key) == 0) {
+			return current->data->size;
+		}
+
+		current = current->next;
+	}
+
+	return 0;
+}
+
+STATIC void multimap_free(multimap* mm) {
+	if(mm) {
+		multimap* current = mm->first;
+		while(current) {
+			multimap* next = current->next;
+
+			if(current->data) {
+				vector_free(current->data);
+			}
+
+			free(current);
+
+			current = next;
+		}
+	}
+}
+
 /**
  * Read the contents of a file
  * filename: Relative path of the file to read
@@ -188,7 +382,7 @@ STATIC unsigned int get_surrounded_with(const char* template, const char* open, 
 	return 0;
 }
 
-char* my_render_template(const char* template_data, unsigned long len, const char* data[], struct RenderOptions options) {
+char* my_render_template(const char* template_data, unsigned long len, const char* data[], renderoptions options) {
 	const char* keys[len];
 	const char* values[len];
 	unsigned long i;
@@ -283,6 +477,7 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 				unsigned long new_data_len = data_inside_len;
 				if(data) new_data_len += strlen(data);
 
+				// Concat this data to the current data array in case it already had data from the separator
 				char* new_data = malloc(new_data_len + 1);
 				memset(new_data, 0, new_data_len + 1);
 				if(data) strcpy(new_data, data);
@@ -292,7 +487,6 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 
 				// 4) Set match_len so we have the whole match
 				match_len = ((unsigned long)closing_instance + closing_len) - (unsigned long)matched_start - strlen(open) - strlen(close);
-
 			}
 		}
 
@@ -360,10 +554,10 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 }
 
 char* render_template(const char* template_data, unsigned long len, const char* data[]) {
-	return my_render_template(template_data, len, data, (struct RenderOptions){});
+	return my_render_template(template_data, len, data, (renderoptions){});
 }
 
-char* my_render_template_file(const char* filename, unsigned long len, const char* data[], struct RenderOptions options) {
+char* my_render_template_file(const char* filename, unsigned long len, const char* data[], renderoptions options) {
 	char* contents = read_file_contents(filename);
 	if(!contents) return NULL;
 
@@ -374,5 +568,5 @@ char* my_render_template_file(const char* filename, unsigned long len, const cha
 }
 
 char* render_template_file(const char* filename, unsigned long len, const char* data[]) {
-	return my_render_template_file(filename, len, data, (struct RenderOptions){});
+	return my_render_template_file(filename, len, data, (renderoptions){});
 }

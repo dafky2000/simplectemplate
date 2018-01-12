@@ -49,7 +49,6 @@ void spec_render_template3(void)
 	char* rendered = render_template(template, 2, data);
 
 	/* assert */
-	printf("Actual: %s\n", rendered);
 	sp_assert_equal_s(rendered, "My awesome test is running");
 
 	free(rendered);
@@ -132,4 +131,3 @@ void spec_render_template7(void)
 
 	free(rendered);
 }
-
