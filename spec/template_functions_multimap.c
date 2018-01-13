@@ -14,8 +14,11 @@ typedef struct MultiMap {
 	struct MultiMap* previous;
 } multimap;
 
+void* vector_get(vector* v, unsigned int index);
+
 int multimap_init(multimap* mm);
 int multimap_add(multimap* mm, const char* key, const char* value);
+vector* multimap_get(multimap* mm, const char* key);
 unsigned int multimap_get_count(multimap* mm, const char* key);
 int multimap_free(multimap* mm);
 
@@ -35,8 +38,8 @@ void spec_multimap1(void)
 	sp_assert_equal_i(mm->data->size, 2);
 	sp_assert_equal_i(mm->data->capacity, 10);
 
-	sp_assert_equal_s(*(mm->data->data) + 0 * sizeof(void*), "value1");
-	sp_assert_equal_s(*(mm->data->data) + 1 * sizeof(void*), "value2");
+	sp_assert_equal_s(vector_get(mm->data, 0), "value1");
+	sp_assert_equal_s(vector_get(mm->data, 1), "value2");
 
 	/* clean */
 	multimap_free(mm);
@@ -89,36 +92,39 @@ void spec_multimap2(void)
 	sp_assert_equal_i(14, multimap_get_count(mm, "temp"));
 	sp_assert_equal_i(11, multimap_get_count(mm, "temp123"));
 
-	sp_assert_equal_s(*(mm->data->data) + 0 * sizeof(void*), "value1");
-	sp_assert_equal_s(*(mm->data->data) + 1 * sizeof(void*), "value2");
-	sp_assert_equal_s(*(mm->data->data) + 2 * sizeof(void*), "value3");
+	vector* v1 = multimap_get(mm, "test");
+	sp_assert_equal_s(vector_get(v1, 0), "value1");
+	sp_assert_equal_s(vector_get(v1, 1), "value2");
+	sp_assert_equal_s(vector_get(v1, 2), "value3");
 
-	sp_assert_equal_s(*(mm->next->data->data) + 0 * sizeof(void*), "value1");
-	sp_assert_equal_s(*(mm->next->data->data) + 1 * sizeof(void*), "value2");
-	sp_assert_equal_s(*(mm->next->data->data) + 2 * sizeof(void*), "value3");
-	sp_assert_equal_s(*(mm->next->data->data) + 3 * sizeof(void*), "value4");
-	sp_assert_equal_s(*(mm->next->data->data) + 4 * sizeof(void*), "value5");
-	sp_assert_equal_s(*(mm->next->data->data) + 5 * sizeof(void*), "value6");
-	sp_assert_equal_s(*(mm->next->data->data) + 6 * sizeof(void*), "value7");
-	sp_assert_equal_s(*(mm->next->data->data) + 7 * sizeof(void*), "value8");
-	sp_assert_equal_s(*(mm->next->data->data) + 8 * sizeof(void*), "value9");
-	sp_assert_equal_s(*(mm->next->data->data) + 9 * sizeof(void*), "value10");
-	sp_assert_equal_s(*(mm->next->data->data) + 10 * sizeof(void*), "value11");
-	sp_assert_equal_s(*(mm->next->data->data) + 11 * sizeof(void*), "value12");
-	sp_assert_equal_s(*(mm->next->data->data) + 12 * sizeof(void*), "value13");
-	sp_assert_equal_s(*(mm->next->data->data) + 13 * sizeof(void*), "value14");
+	vector* v2 = multimap_get(mm, "temp");
+	sp_assert_equal_s(vector_get(v2, 0), "value1");
+	sp_assert_equal_s(vector_get(v2, 1), "value2");
+	sp_assert_equal_s(vector_get(v2, 2), "value3");
+	sp_assert_equal_s(vector_get(v2, 3), "value4");
+	sp_assert_equal_s(vector_get(v2, 4), "value5");
+	sp_assert_equal_s(vector_get(v2, 5), "value6");
+	sp_assert_equal_s(vector_get(v2, 6), "value7");
+	sp_assert_equal_s(vector_get(v2, 7), "value8");
+	sp_assert_equal_s(vector_get(v2, 8), "value9");
+	sp_assert_equal_s(vector_get(v2, 9), "value10");
+	sp_assert_equal_s(vector_get(v2, 10), "value11");
+	sp_assert_equal_s(vector_get(v2, 11), "value12");
+	sp_assert_equal_s(vector_get(v2, 12), "value13");
+	sp_assert_equal_s(vector_get(v2, 13), "value14");
 
-	sp_assert_equal_s(*(mm->next->next->data->data) + 0 * sizeof(void*), "value1");
-	sp_assert_equal_s(*(mm->next->next->data->data) + 1 * sizeof(void*), "value2");
-	sp_assert_equal_s(*(mm->next->next->data->data) + 2 * sizeof(void*), "value3");
-	sp_assert_equal_s(*(mm->next->next->data->data) + 3 * sizeof(void*), "value4");
-	sp_assert_equal_s(*(mm->next->next->data->data) + 4 * sizeof(void*), "value5");
-	sp_assert_equal_s(*(mm->next->next->data->data) + 5 * sizeof(void*), "value6");
-	sp_assert_equal_s(*(mm->next->next->data->data) + 6 * sizeof(void*), "value7");
-	sp_assert_equal_s(*(mm->next->next->data->data) + 7 * sizeof(void*), "value8");
-	sp_assert_equal_s(*(mm->next->next->data->data) + 8 * sizeof(void*), "value9");
-	sp_assert_equal_s(*(mm->next->next->data->data) + 9 * sizeof(void*), "value10");
-	sp_assert_equal_s(*(mm->next->next->data->data) + 10 * sizeof(void*), "value11");
+	vector* v3 = multimap_get(mm, "temp123");
+	sp_assert_equal_s(vector_get(v3, 0), "value1");
+	sp_assert_equal_s(vector_get(v3, 1), "value2");
+	sp_assert_equal_s(vector_get(v3, 2), "value3");
+	sp_assert_equal_s(vector_get(v3, 3), "value4");
+	sp_assert_equal_s(vector_get(v3, 4), "value5");
+	sp_assert_equal_s(vector_get(v3, 5), "value6");
+	sp_assert_equal_s(vector_get(v3, 6), "value7");
+	sp_assert_equal_s(vector_get(v3, 7), "value8");
+	sp_assert_equal_s(vector_get(v3, 8), "value9");
+	sp_assert_equal_s(vector_get(v3, 9), "value10");
+	sp_assert_equal_s(vector_get(v3, 10), "value11");
 
 	/* clean */
 	multimap_free(mm);

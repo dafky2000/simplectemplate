@@ -110,6 +110,14 @@ STATIC int vector_push_back(vector* v, void* element) {
 	return 0;
 }
 
+STATIC void* vector_get(vector* v, unsigned int index) {
+	if(index < v->size) {
+		return *(v->data) + index * sizeof(void*);
+	}
+
+	return NULL;
+}
+
 STATIC void vector_free(vector* v) {
 	if(v) {
 		if(v->data) {
@@ -195,15 +203,25 @@ STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
 	return 0;
 }
 
-STATIC unsigned int multimap_get_count(multimap* mm, const char* key) {
+STATIC vector* multimap_get(multimap* mm, const char* key) {
 	multimap* current = mm->first;
 
 	while(current) {
 		if(strcmp(current->key, key) == 0) {
-			return current->data->size;
+			return current->data;
 		}
 
 		current = current->next;
+	}
+
+	return NULL;
+}
+
+STATIC unsigned int multimap_get_count(multimap* mm, const char* key) {
+	vector* v = multimap_get(mm, key);
+
+	if(v) {
+		return v->size;
 	}
 
 	return 0;
