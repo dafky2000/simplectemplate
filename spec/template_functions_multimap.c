@@ -128,6 +128,7 @@ void spec_multimap2(void)
 
 	// Index out of bounds returns null
 	sp_assert_equal_i((long)multimap_get(mm, "notfound"), (long)NULL);
+	sp_assert_equal_i(multimap_get_count(mm, "notfound"), 0);
 
 	/* clean */
 	multimap_free(mm);
