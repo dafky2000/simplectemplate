@@ -65,7 +65,8 @@ void spec_vector2(void)
 	sp_assert_equal_i(0, vector_push_back(v, (char*)"test21"));
 	sp_assert_equal_i(21, v->size);
 
-	for(unsigned int i = 0; i < v->size; ++i) {
+	unsigned int i = 0;
+	for(; i < v->size; ++i) {
 		char cmpto[7];
 		memset(cmpto, 0, 7);
 		sprintf(cmpto, "test%02d", i+1);
