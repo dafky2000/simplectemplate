@@ -62,23 +62,31 @@ void spec_multimap2(void)
 	sp_assert_equal_i(0, multimap_add(mm, "temp123", "value4"));
 	sp_assert_equal_i(0, multimap_add(mm, "temp123", "value5"));
 	sp_assert_equal_i(0, multimap_add(mm, "temp123", "value6"));
-	// SWITCH
+	// Inserting >10 of the previous map to help check for memory violations
 	sp_assert_equal_i(0, multimap_add(mm, "temp", "value3"));
 	sp_assert_equal_i(0, multimap_add(mm, "temp", "value4"));
-	// Ok just messing around
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value5"));
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value6"));
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value7"));
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value8"));
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value9"));
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value10"));
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value11"));
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value12"));
+	// Done insert >10 of previous
 	sp_assert_equal_i(0, multimap_add(mm, "temp123", "value7"));
 	sp_assert_equal_i(0, multimap_add(mm, "temp123", "value8"));
 	sp_assert_equal_i(0, multimap_add(mm, "temp123", "value9"));
 	sp_assert_equal_i(0, multimap_add(mm, "temp123", "value10"));
 	sp_assert_equal_i(0, multimap_add(mm, "temp123", "value11"));
-	// SWITCH
-	sp_assert_equal_i(0, multimap_add(mm, "temp", "value5"));
-	sp_assert_equal_i(0, multimap_add(mm, "temp", "value6"));
-	// Ok just messing around again..
+
+	// Insert a couple more for fun
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value13"));
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value14"));
 
 	/* assert */
 	sp_assert_equal_i(3, multimap_get_count(mm, "test"));
-	sp_assert_equal_i(6, multimap_get_count(mm, "temp"));
+	sp_assert_equal_i(14, multimap_get_count(mm, "temp"));
 	sp_assert_equal_i(11, multimap_get_count(mm, "temp123"));
 
 	sp_assert_equal_s(*(mm->data->data) + 0 * sizeof(void*), "value1");
@@ -91,6 +99,14 @@ void spec_multimap2(void)
 	sp_assert_equal_s(*(mm->next->data->data) + 3 * sizeof(void*), "value4");
 	sp_assert_equal_s(*(mm->next->data->data) + 4 * sizeof(void*), "value5");
 	sp_assert_equal_s(*(mm->next->data->data) + 5 * sizeof(void*), "value6");
+	sp_assert_equal_s(*(mm->next->data->data) + 6 * sizeof(void*), "value7");
+	sp_assert_equal_s(*(mm->next->data->data) + 7 * sizeof(void*), "value8");
+	sp_assert_equal_s(*(mm->next->data->data) + 8 * sizeof(void*), "value9");
+	sp_assert_equal_s(*(mm->next->data->data) + 9 * sizeof(void*), "value10");
+	sp_assert_equal_s(*(mm->next->data->data) + 10 * sizeof(void*), "value11");
+	sp_assert_equal_s(*(mm->next->data->data) + 11 * sizeof(void*), "value12");
+	sp_assert_equal_s(*(mm->next->data->data) + 12 * sizeof(void*), "value13");
+	sp_assert_equal_s(*(mm->next->data->data) + 13 * sizeof(void*), "value14");
 
 	sp_assert_equal_s(*(mm->next->next->data->data) + 0 * sizeof(void*), "value1");
 	sp_assert_equal_s(*(mm->next->next->data->data) + 1 * sizeof(void*), "value2");
