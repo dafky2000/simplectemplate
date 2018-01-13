@@ -126,6 +126,9 @@ void spec_multimap2(void)
 	sp_assert_equal_s(vector_get(v3, 9), "value10");
 	sp_assert_equal_s(vector_get(v3, 10), "value11");
 
+	// Index out of bounds returns null
+	sp_assert_equal_i((long)multimap_get(mm, "notfound"), (long)NULL);
+
 	/* clean */
 	multimap_free(mm);
 }

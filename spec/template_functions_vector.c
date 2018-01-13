@@ -9,6 +9,7 @@ typedef struct Vector {
 int vector_init(vector* v, size_t init_capacity);
 int vector_grow(vector* v, size_t add_capacity);
 int vector_push_back(vector* v, void* element);
+void* vector_get(vector* v, unsigned int index);
 void vector_free(vector* v);
 
 void spec_vector1(void)
@@ -97,6 +98,12 @@ void spec_vector3(void)
 
 	sp_assert_equal_i(3, v->size);
 	sp_assert_equal_i(2, v2->size);
+
+	sp_assert_equal_s(vector_get(v, 2), "test3");
+	sp_assert_equal_s(vector_get(v2, 1), "test5");
+
+	// Index out of bounds returns null
+	sp_assert_equal_i((long)vector_get(v2, 3), (long)NULL);
 
 	vector_free(v);
 	vector_free(v2);

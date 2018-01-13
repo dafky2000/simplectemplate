@@ -60,7 +60,7 @@ STATIC int vector_grow(vector* v, size_t add_capacity) {
 	void* new_vector = (void*)realloc(*(v->data), new_size * sizeof(void*));
 	// Out of memory
 	if(!new_vector) {
-		return -1;
+		return -1; /* LCOV_EXCL_LINE */
 	}
 
 	// Assign the new pointer
@@ -79,7 +79,7 @@ STATIC int vector_init(vector* v, size_t init_capacity) {
 
 	// Out of memory
 	if (!v->data) {
-		return -1;
+		return -1; /* LCOV_EXCL_LINE */
 	}
 
 	*(v->data) = malloc(init_capacity * sizeof(void*));
@@ -88,7 +88,7 @@ STATIC int vector_init(vector* v, size_t init_capacity) {
 
 	// Out of memory
 	if (!*(v->data)) {
-		return -1;
+		return -1; /* LCOV_EXCL_LINE */
 	}
 
 	return 0; /* success */
@@ -97,7 +97,7 @@ STATIC int vector_init(vector* v, size_t init_capacity) {
 STATIC int vector_push_back(vector* v, void* element) {
 	if(v->size >= v->capacity) {
 		if(vector_grow(v, 10) != 0) {
-			return -1;
+			return -1; /* LCOV_EXCL_LINE */
 		}
 	}
 
@@ -139,7 +139,7 @@ STATIC int multimap_init(multimap* mm) {
 	mm->data = malloc(sizeof(vector));
 	// Could not allocate the memory
 	if(vector_init(mm->data, 10) != 0) {
-		return -1;
+		return -1; /* LCOV_EXCL_LINE */
 	}
 
 	mm->first = NULL;
@@ -156,7 +156,7 @@ STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
 
 		// Add the value to the vector
 		if(vector_push_back(mm->data, (char*)value) != 0) {
-			return -1;
+			return -1; /* LCOV_EXCL_LINE */
 		}
 
 		mm->first = mm;
@@ -168,7 +168,7 @@ STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
 			if(strcmp(current->key, key) == 0) {
 				// Add the value to the vector
 				if(vector_push_back(current->data, (char*)value) != 0) {
-					return -1;
+					return -1; /* LCOV_EXCL_LINE */
 				}
 
 				return 0;
@@ -183,14 +183,14 @@ STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
 		multimap* new_multimap = malloc(sizeof(multimap));
 		// Out of memory
 		if(multimap_init(new_multimap) != 0) {
-			return -1;
+			return -1; /* LCOV_EXCL_LINE */
 		}
 
 		new_multimap->key = key;
 
 		// Add the value to the vector
 		if(vector_push_back(new_multimap->data, (char*)value) != 0) {
-			return -1;
+			return -1; /* LCOV_EXCL_LINE */
 		}
 
 		new_multimap->first = current->first;
