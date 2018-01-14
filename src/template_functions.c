@@ -35,9 +35,11 @@
 typedef struct RenderOptions {
 	const char* placeholder_open;       // "{{"
 	const char* placeholder_close;      // "}}"
-	const char* data_cond_separator;    // " " If a separator is defined than we assume the structure {{cond data}}
-	const char* data_cond_open_prefix;  // "#" If a prefix is defined than we assume this is {{#cond}} data {{/cond}} (mustache style)
-	const char* data_cond_close_prefix; // "/"
+	const char* placeholder_cond_separator;    // " " If a separator is defined than we assume the structure {{cond data}}
+	const char* placeholder_cond_open_prefix;  // "#" If a prefix is defined than we assume this is {{#cond}} data {{/cond}} (mustache style)
+	const char* placeholder_cond_close_prefix; // "/"
+	const char* data_list_suffix; // "[]" To define a value as a list
+	const char* data_object_suffix; // "." To define properties of a value
 } renderoptions;
 
 typedef struct Vector {
@@ -400,6 +402,24 @@ STATIC unsigned int get_surrounded_with(const char* template, const char* open, 
 	return 0;
 }
 
+STATIC void set_default_renderoptions(renderoptions* options) {
+	// Setup defaults
+	if(options->placeholder_open == NULL)
+		options->placeholder_open = "{{";
+	if(options->placeholder_close == NULL)
+		options->placeholder_close = "}}";
+	if(options->placeholder_cond_separator == NULL)
+		options->placeholder_cond_separator = " ";
+	if(options->placeholder_cond_open_prefix == NULL)
+		options->placeholder_cond_open_prefix = "#";
+	if(options->placeholder_cond_close_prefix == NULL)
+		options->placeholder_cond_close_prefix = "/";
+	if(options->data_list_suffix == NULL)
+		options->data_list_suffix = "[]";
+	if(options->data_object_suffix == NULL)
+		options->data_object_suffix = ".";
+}
+
 char* my_render_template(const char* template_data, unsigned long len, const char* data[], renderoptions options) {
 	const char* keys[len];
 	const char* values[len];
@@ -409,36 +429,31 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 		values[i] = (char *)data[i*2+1];
 	}
 
+	set_default_renderoptions(&options);
+
 	// Get the options and set defaults if they aren't set.
-	const char* open = options.placeholder_open;
-	const char* close = options.placeholder_close;
-	const char* data_cond_separator = options.data_cond_separator;
-	const char* data_cond_open_prefix = options.data_cond_open_prefix;
-	const char* data_cond_close_prefix = options.data_cond_close_prefix;
+	const char* placeholder_open = options.placeholder_open;
+	const char* placeholder_close = options.placeholder_close;
+	const char* placeholder_cond_separator = options.placeholder_cond_separator;
+	const char* placeholder_cond_open_prefix = options.placeholder_cond_open_prefix;
+	const char* placeholder_cond_close_prefix = options.placeholder_cond_close_prefix;
+	const char* data_list_suffix = options.data_list_suffix;
+	const char* data_object_suffix = options.data_object_suffix;
 
-	// Setup defaults
-	if(open == NULL) open = "{{";
-	if(close == NULL) close = "}}";
-	if(data_cond_separator == NULL) data_cond_separator = " ";
-	if(data_cond_open_prefix == NULL) data_cond_open_prefix = "#";
-	if(data_cond_close_prefix == NULL) data_cond_close_prefix = "/";
-
-	char close_and_data_cond_separator[strlen(close) + strlen(data_cond_separator) + 2]; // +1 for . and +1 for null
-	memset(close_and_data_cond_separator, 0, strlen(close) + strlen(data_cond_separator) + 2); // +1 for . and +1 for null
-	strcpy(close_and_data_cond_separator, close);
-	strcat(close_and_data_cond_separator, data_cond_separator);
-	strcat(close_and_data_cond_separator, ".");
+	char close_and_data_cond_separator[strlen(placeholder_close) + strlen(placeholder_cond_separator) + 1]; // +1 for . and +1 for null
+	sprintf(close_and_data_cond_separator, "%s%s",
+		placeholder_close,
+		placeholder_cond_separator);
 
 	// Create a copy of the template to work with
-	unsigned long template_length = strlen(template_data) + 1;
-	char* output = malloc(template_length);
+	char* output = malloc(strlen(template_data) + 1);
 	strcpy(output, template_data);
 
 	long start = 0, match_len = 0;
-	while(get_surrounded_with(output, open, close, &start, &match_len)) {
+	while(get_surrounded_with(output, placeholder_open, placeholder_close, &start, &match_len)) {
 		char* matched_start = output + start;
 
-		// Get the match, inside the open and close braces
+		// Get the match, inside the placeholder_open and placeholder_close braces
 		char matched_copy[match_len+1];
 		memset(matched_copy, 0, match_len + 1);
 		strncpy(matched_copy, matched_start, match_len);
@@ -448,43 +463,41 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 		char* data = NULL;
 
 		// If we have the separator
-		char* data_separated = strstr(matched_copy, data_cond_separator);
+		char* data_separated = strstr(matched_copy, placeholder_cond_separator);
 		if(data_separated != NULL) {
-			/* is_condition_sep = 1; */
-			data_separated += strlen(data_cond_separator);
+			data_separated += strlen(placeholder_cond_separator);
 
 			// Copy the separated data to the data
 			data = malloc(strlen(data_separated) + 1);
-			memset(data, 0, strlen(data_separated) + 1);
 			strcpy(data, data_separated);
 
 			/* printf("Element '%s' has condition separator, value = '%s'\n", matched_copy, data); */
 		}
 
 		// If we start with a condition
-		if(strstr(matched_copy, data_cond_open_prefix) == matched_copy) {
+		if(strstr(matched_copy, placeholder_cond_open_prefix) == matched_copy) {
 			is_condition_pre = 1;
 
 			/* printf("Element '%s' has condition prefix at (%u)\n", matched_copy, (unsigned)matched_start); */
 
 			// 1) Get the closing element {{/data}}
 			unsigned long closing_len =
-				strlen(open) +
-				strlen(data_cond_close_prefix) +
-				strlen(matched_copy) + strlen(data_cond_open_prefix) +
-				strlen(close);
+				strlen(placeholder_open) +
+				strlen(placeholder_cond_close_prefix) +
+				strlen(matched_copy) + strlen(placeholder_cond_open_prefix) +
+				strlen(placeholder_close);
 
 			char closing_text[closing_len + 1];
-			memset(closing_text, 0, closing_len + 1);
-			strcpy(closing_text, open);
-			strcat(closing_text, data_cond_close_prefix);
-			strcat(closing_text, matched_copy + strlen(data_cond_open_prefix));
-			strcat(closing_text, close);
+			sprintf((char*)closing_text, "%s%s%s%s",
+				placeholder_open,
+				placeholder_cond_close_prefix,
+				matched_copy + strlen(placeholder_cond_open_prefix),
+				placeholder_close);
 
 			char* closing_instance = strstr(matched_start, closing_text);
 			if(closing_instance != NULL) {
 				// 2) Get the data the placeholders
-				char* data_inside_start = matched_start + strlen(matched_copy) + strlen(open);
+				char* data_inside_start = matched_start + strlen(matched_copy) + strlen(placeholder_open);
 				unsigned long data_inside_len = (unsigned long)closing_instance - (unsigned long)data_inside_start;
 				char data_inside[data_inside_len + 1];
 				memset(data_inside, 0, data_inside_len + 1);
@@ -504,7 +517,7 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 				data = new_data;
 
 				// 4) Set match_len so we have the whole match
-				match_len = ((unsigned long)closing_instance + closing_len) - (unsigned long)matched_start - strlen(open) - strlen(close);
+				match_len = ((unsigned long)closing_instance + closing_len) - (unsigned long)matched_start - strlen(placeholder_open) - strlen(placeholder_close);
 			}
 		}
 
@@ -512,15 +525,15 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 
 		// Reassemble the entire placeholder and replace it
 		/* printf("match_len: '%u'\n", match_len); */
-		char toreplace[strlen(open) + match_len + strlen(close) + 1];
-		strcpy(toreplace, open);
+		char toreplace[strlen(placeholder_open) + match_len + strlen(placeholder_close) + 1];
+		strcpy(toreplace, placeholder_open);
 		strncat(toreplace, matched_start, match_len);
-		strcat(toreplace, close);
+		strcat(toreplace, placeholder_close);
 		/* printf("toreplace: '%s'\n", toreplace); */
 
 		char* startofkey = matched_copy;
 		if(is_condition_pre) {
-			startofkey += strlen(data_cond_open_prefix);
+			startofkey += strlen(placeholder_cond_open_prefix);
 		}
 
 		/* printf("startokey: '%s'\n", startofkey); */
