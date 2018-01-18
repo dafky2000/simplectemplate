@@ -135,22 +135,22 @@ void spec_render_template7(void)
 // Basic section loop test
 void spec_render_template8(void)
 {
-	/* /1* arrange *1/ */
-	/* const char *data[] = { */
-	/* 	"loop[]", "true", */
-	/* 	"loop[].data", "test1", */
-	/* 	"loop[].data", "test2", */
-	/* 	"loop[].data", "test3", */
-	/* }; */
-	/* const char* template = "Looping: {{#loop}}Cur val: {{data}}\n{{/loop}}"; */
+	/* arrange */
+	const char *data[] = {
+		"loop[]", "true",
+		"loop[].data", "test1",
+		"loop[].data", "test2",
+		"loop[].data", "test3",
+	};
+	const char* template = "Looping: {{#loop}}Cur val: {{data}}\n{{/loop}}";
 
 	/* printf("Actual value: '%s'", template); */
 
-	/* /1* act *1/ */
-	/* char* rendered = render_template(template, 4, data); */
+	/* act */
+	char* rendered = render_template(template, 4, data);
 
-	/* /1* assert *1/ */
+	/* assert */
 	/* sp_assert_equal_s(rendered, "Looping: Cur val: test1\nCur val: test2\nCur val: test3\n"); */
 
-	/* free(rendered); */
+	free(rendered);
 }

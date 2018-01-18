@@ -59,14 +59,17 @@ typedef struct MultiMap {
 STATIC int vector_grow(vector* v, size_t add_capacity) {
 	unsigned int new_size = v->capacity + add_capacity;
 
-	void* new_vector = (void*)realloc(*(v->data), new_size * sizeof(void*));
+	void** container = v->data;
+	void** elems = *container;
+
+	void* new_vector = realloc(elems, new_size * sizeof(void*));
 	// Out of memory
 	if(!new_vector) {
 		return -1; /* LCOV_EXCL_LINE */
 	}
 
 	// Assign the new pointer
-	*(v->data) = new_vector;
+	*container = new_vector;
 
 	// New capacity
 	v->capacity = new_size;
@@ -77,21 +80,21 @@ STATIC int vector_grow(vector* v, size_t add_capacity) {
 STATIC int vector_init(vector* v, size_t init_capacity) {
 	memset(v, 0, sizeof(vector));
 
-	v->data = malloc(sizeof(void*));
+	void** container = malloc(sizeof(void*));
+	void** elems = malloc(init_capacity * sizeof(void*));
 
 	// Out of memory
-	if (!v->data) {
+	if (!container || !elems) {
 		return -1; /* LCOV_EXCL_LINE */
 	}
 
-	*(v->data) = malloc(init_capacity * sizeof(void*));
+	memset(elems, 0, init_capacity * sizeof(void*));
+
+	*container = elems;
+
+	v->data = container;
 	v->size = 0;
 	v->capacity = init_capacity;
-
-	// Out of memory
-	if (!*(v->data)) {
-		return -1; /* LCOV_EXCL_LINE */
-	}
 
 	return 0; /* success */
 }
@@ -104,17 +107,19 @@ STATIC int vector_push_back(vector* v, void* element) {
 	}
 
 	// Add the element to the next memory location
-	void* data = *(v->data);
-	void* next_loc = data + v->size * sizeof(void*);
-	memcpy(next_loc, element, sizeof(void*));
-	v->size++;
+	void** elems = *v->data;
+	if(element) {
+		elems[v->size++] = element;
+	}
 
 	return 0;
 }
 
 STATIC void* vector_get(vector* v, unsigned int index) {
 	if(index < v->size) {
-		return *(v->data) + index * sizeof(void*);
+		void** container = v->data;
+		void** elems = *container;
+		return elems[index];
 	}
 
 	return NULL;
@@ -122,13 +127,23 @@ STATIC void* vector_get(vector* v, unsigned int index) {
 
 STATIC void vector_free(vector* v) {
 	if(v) {
-		if(v->data) {
-			void* data = *(v->data);
-			if(data) {
-				free(data);
+		void** container = v->data;
+
+		if(container) {
+			void** elems = *container;
+
+			if(elems) {
+				unsigned int i = 0;
+				for(i = 0; i < v->size; ++i) {
+					if(elems[i]) {
+						free(elems[i]);
+					}
+				}
+
+				free(elems);
 			}
 
-			free(v->data);
+			free(container);
 		}
 
 		free(v);
@@ -152,12 +167,23 @@ STATIC int multimap_init(multimap* mm) {
 }
 
 STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
+	char* value_copy = NULL;
+	// Don't insert NULL since we simply return NULL
+	if(!value) {
+		value_copy = malloc(1);
+		memset(value_copy, 0, 1);
+	} else {
+		value_copy = malloc(strlen(value) + 1);
+		strcpy(value_copy, value);
+	}
+
 	multimap* current = mm->first;
 	if(!current) {
 		mm->key = key;
 
 		// Add the value to the vector
-		if(vector_push_back(mm->data, (char*)value) != 0) {
+		if(vector_push_back(mm->data, value_copy) != 0) {
+			free(value_copy);
 			return -1; /* LCOV_EXCL_LINE */
 		}
 
@@ -169,7 +195,8 @@ STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
 		while(current) {
 			if(strcmp(current->key, key) == 0) {
 				// Add the value to the vector
-				if(vector_push_back(current->data, (char*)value) != 0) {
+				if(vector_push_back(current->data, value_copy) != 0) {
+					free(value_copy);
 					return -1; /* LCOV_EXCL_LINE */
 				}
 
@@ -185,13 +212,15 @@ STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
 		multimap* new_multimap = malloc(sizeof(multimap));
 		// Out of memory
 		if(multimap_init(new_multimap) != 0) {
+			free(value_copy);
 			return -1; /* LCOV_EXCL_LINE */
 		}
 
 		new_multimap->key = key;
 
 		// Add the value to the vector
-		if(vector_push_back(new_multimap->data, (char*)value) != 0) {
+		if(vector_push_back(new_multimap->data, value_copy) != 0) {
+			free(value_copy);
 			return -1; /* LCOV_EXCL_LINE */
 		}
 
@@ -232,17 +261,20 @@ STATIC unsigned int multimap_get_count(multimap* mm, const char* key) {
 STATIC void multimap_free(multimap* mm) {
 	if(mm) {
 		multimap* current = mm->first;
+
 		while(current) {
 			multimap* next = current->next;
 
-			if(current->data) {
+			if(current != mm) {
 				vector_free(current->data);
+				free(current);
 			}
-
-			free(current);
 
 			current = next;
 		}
+
+		vector_free(mm->data);
+		free(mm);
 	}
 }
 
@@ -420,6 +452,47 @@ STATIC void set_default_renderoptions(renderoptions* options) {
 		options->data_object_suffix = ".";
 }
 
+STATIC char* get_variable(const char* inside_placeholder, renderoptions options) {
+	set_default_renderoptions(&options);
+
+	const char* stop_tokens[] = {
+		options.placeholder_close,
+		options.placeholder_cond_separator,
+		options.data_list_suffix,
+		options.data_object_suffix,
+	};
+
+	// Build the current variable
+	char* tmp_startofkey = (char*)inside_placeholder;
+	char* tmp_token = NULL;
+	char* actual_token = NULL;
+	while((tmp_token = (char*)my_strtok(tmp_startofkey, 4, stop_tokens))) {
+		const char* my_token = get_last_token(tmp_token, 4, stop_tokens);
+		if(!my_token
+				|| strcmp(my_token, options.placeholder_cond_separator) == 0
+				|| strcmp(my_token, options.placeholder_close) == 0) {
+			unsigned int variable_len = (tmp_token + strlen(my_token)) - tmp_startofkey;
+			actual_token = malloc(variable_len + 1);
+			memset(actual_token, 0, variable_len + 1);
+			memcpy(actual_token, tmp_startofkey, variable_len);
+			break;
+		}
+
+		tmp_startofkey = tmp_startofkey + 1;
+	}
+
+	// If the next token wasn't found, the actual token is the entire string!
+	if(!actual_token) {
+		actual_token = malloc(strlen(inside_placeholder) + 1);
+		memset(actual_token, 0, strlen(inside_placeholder) + 1);
+		memcpy(actual_token, inside_placeholder, strlen(inside_placeholder));
+	}
+
+	/* printf("Actual Token: %s\n", actual_token); */
+
+	return actual_token;
+}
+
 char* my_render_template(const char* template_data, unsigned long len, const char* data[], renderoptions options) {
 	const char* keys[len];
 	const char* values[len];
@@ -429,28 +502,21 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 		values[i] = (char *)data[i*2+1];
 	}
 
-	set_default_renderoptions(&options);
+	multimap* mm = malloc(sizeof(multimap));
+	multimap_init(mm);
+	for(i = 0; i < len; i++) {
+		multimap_add(mm, data[i*2], data[i*2+1]);
+	}
 
 	// Get the options and set defaults if they aren't set.
-	const char* placeholder_open = options.placeholder_open;
-	const char* placeholder_close = options.placeholder_close;
-	const char* placeholder_cond_separator = options.placeholder_cond_separator;
-	const char* placeholder_cond_open_prefix = options.placeholder_cond_open_prefix;
-	const char* placeholder_cond_close_prefix = options.placeholder_cond_close_prefix;
-	const char* data_list_suffix = options.data_list_suffix;
-	const char* data_object_suffix = options.data_object_suffix;
-
-	char close_and_data_cond_separator[strlen(placeholder_close) + strlen(placeholder_cond_separator) + 1]; // +1 for . and +1 for null
-	sprintf(close_and_data_cond_separator, "%s%s",
-		placeholder_close,
-		placeholder_cond_separator);
+	set_default_renderoptions(&options);
 
 	// Create a copy of the template to work with
 	char* output = malloc(strlen(template_data) + 1);
 	strcpy(output, template_data);
 
 	long start = 0, match_len = 0;
-	while(get_surrounded_with(output, placeholder_open, placeholder_close, &start, &match_len)) {
+	while(get_surrounded_with(output, options.placeholder_open, options.placeholder_close, &start, &match_len)) {
 		char* matched_start = output + start;
 
 		// Get the match, inside the placeholder_open and placeholder_close braces
@@ -463,9 +529,9 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 		char* data = NULL;
 
 		// If we have the separator
-		char* data_separated = strstr(matched_copy, placeholder_cond_separator);
+		char* data_separated = strstr(matched_copy, options.placeholder_cond_separator);
 		if(data_separated != NULL) {
-			data_separated += strlen(placeholder_cond_separator);
+			data_separated += strlen(options.placeholder_cond_separator);
 
 			// Copy the separated data to the data
 			data = malloc(strlen(data_separated) + 1);
@@ -475,29 +541,29 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 		}
 
 		// If we start with a condition
-		if(strstr(matched_copy, placeholder_cond_open_prefix) == matched_copy) {
+		if(strstr(matched_copy, options.placeholder_cond_open_prefix) == matched_copy) {
 			is_condition_pre = 1;
 
 			/* printf("Element '%s' has condition prefix at (%u)\n", matched_copy, (unsigned)matched_start); */
 
 			// 1) Get the closing element {{/data}}
 			unsigned long closing_len =
-				strlen(placeholder_open) +
-				strlen(placeholder_cond_close_prefix) +
-				strlen(matched_copy) + strlen(placeholder_cond_open_prefix) +
-				strlen(placeholder_close);
+				strlen(options.placeholder_open) +
+				strlen(options.placeholder_cond_close_prefix) +
+				strlen(matched_copy) + strlen(options.placeholder_cond_open_prefix) +
+				strlen(options.placeholder_close);
 
 			char closing_text[closing_len + 1];
 			sprintf((char*)closing_text, "%s%s%s%s",
-				placeholder_open,
-				placeholder_cond_close_prefix,
-				matched_copy + strlen(placeholder_cond_open_prefix),
-				placeholder_close);
+				options.placeholder_open,
+				options.placeholder_cond_close_prefix,
+				matched_copy + strlen(options.placeholder_cond_open_prefix),
+				options.placeholder_close);
 
 			char* closing_instance = strstr(matched_start, closing_text);
 			if(closing_instance != NULL) {
 				// 2) Get the data the placeholders
-				char* data_inside_start = matched_start + strlen(matched_copy) + strlen(placeholder_open);
+				char* data_inside_start = matched_start + strlen(matched_copy) + strlen(options.placeholder_open);
 				unsigned long data_inside_len = (unsigned long)closing_instance - (unsigned long)data_inside_start;
 				char data_inside[data_inside_len + 1];
 				memset(data_inside, 0, data_inside_len + 1);
@@ -517,7 +583,7 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 				data = new_data;
 
 				// 4) Set match_len so we have the whole match
-				match_len = ((unsigned long)closing_instance + closing_len) - (unsigned long)matched_start - strlen(placeholder_open) - strlen(placeholder_close);
+				match_len = ((unsigned long)closing_instance + closing_len) - (unsigned long)matched_start - strlen(options.placeholder_open) - strlen(options.placeholder_close);
 			}
 		}
 
@@ -525,18 +591,19 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 
 		// Reassemble the entire placeholder and replace it
 		/* printf("match_len: '%u'\n", match_len); */
-		char toreplace[strlen(placeholder_open) + match_len + strlen(placeholder_close) + 1];
-		strcpy(toreplace, placeholder_open);
-		strncat(toreplace, matched_start, match_len);
-		strcat(toreplace, placeholder_close);
+		char toreplace[strlen(options.placeholder_open) + match_len + strlen(options.placeholder_close) + 1];
+		sprintf(toreplace, "%s%.*s%s",
+			options.placeholder_open,
+			(unsigned int)match_len, matched_start,
+			options.placeholder_close);
 		/* printf("toreplace: '%s'\n", toreplace); */
 
 		char* startofkey = matched_copy;
 		if(is_condition_pre) {
-			startofkey += strlen(placeholder_cond_open_prefix);
+			startofkey += strlen(options.placeholder_cond_open_prefix);
 		}
 
-		/* printf("startokey: '%s'\n", startofkey); */
+		char* actual_variable = get_variable(startofkey, options);
 
 		// Get the token value from the input data
 		unsigned int i = 0;
@@ -546,8 +613,7 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 			strcpy(key, keys[i]);
 			/* printf("key: '%s'\n", key); */
 
-			char* token = strtok(startofkey, close_and_data_cond_separator);
-			int cmp_res = strcmp(token, key);
+			int cmp_res = strcmp(actual_variable, key);
 			if(cmp_res == 0) {
 				/* printf("FOUND\n"); */
 				char* replaced;
@@ -572,6 +638,7 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 		}
 
 		if(data) free(data);
+		if(actual_variable) free(actual_variable);
 
 		// If the key wasn't found
 		if(i >= len) {
@@ -579,7 +646,66 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 			free(output);
 			output = replaced;
 		}
+
+		/***********************************************/
+		/***********************************************/
+		/***********************************************/
+
+		/* char* replaced = NULL; */
+		/* vector* v = multimap_get(mm, actual_variable); */
+		/* if(v && v->size) { */
+		/* 	char* value = vector_get(v, 0); */
+
+		/* 	/1* printf("FOUND\n"); *1/ */
+		/* 	if(data) { */
+		/* 		if(value && strlen(value)) { */
+		/* 			replaced = str_replace(output, toreplace, data); */
+		/* 		} */
+		/* 	} else { */
+		/* 		replaced = str_replace(output, toreplace, value); */
+		/* 	} */
+		/* } */
+
+		/* if(!replaced) { */
+		/* 	replaced = str_replace(output, toreplace, ""); */
+		/* } */
+
+		/* if(replaced) { */
+		/* 	free(output); */
+		/* 	output = replaced; */
+		/* } */
+
+		/* if(data) free(data); */
+		/* if(actual_variable) free(actual_variable); */
+
+		/***********************************************/
+		/***********************************************/
+		/***********************************************/
+
+		/* char* replaced = NULL; */
+		/* vector* v = multimap_get(mm, actual_variable); */
+		/* if(v && v->size) { */
+		/* 	char* value = vector_get(v, 0); */
+		/* 	printf("Vector %s found, using value '%s'\n", actual_variable, value); */
+		/* 	/1* if(value && strlen(value)) { *1/ */
+		/* 	/1* 	replaced = str_replace(output, toreplace, value); *1/ */
+		/* 	/1* } *1/ */
+		/* } */
+
+		/* if(!replaced) { */
+		/* 	replaced = str_replace(output, toreplace, ""); */
+		/* } */
+
+		/* if(replaced) { */
+		/* 	free(output); */
+		/* 	output = replaced; */
+		/* } */
+
+		/* if(data) free(data); */
+		/* if(actual_variable) free(actual_variable); */
 	}
+
+	multimap_free(mm);
 
 	return output;
 }

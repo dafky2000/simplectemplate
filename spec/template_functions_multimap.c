@@ -22,7 +22,18 @@ vector* multimap_get(multimap* mm, const char* key);
 unsigned int multimap_get_count(multimap* mm, const char* key);
 int multimap_free(multimap* mm);
 
+// Basically just an init memory leak test
 void spec_multimap1(void)
+{
+	/* arrange */
+	multimap* mm = malloc(sizeof(multimap));
+	multimap_init(mm);
+
+	/* clean */
+	multimap_free(mm);
+}
+
+void spec_multimap2(void)
 {
 	/* arrange */
 	multimap* mm = malloc(sizeof(multimap));
@@ -45,7 +56,7 @@ void spec_multimap1(void)
 	multimap_free(mm);
 }
 
-void spec_multimap2(void)
+void spec_multimap3(void)
 {
 	/* arrange */
 	multimap* mm = malloc(sizeof(multimap));
@@ -84,10 +95,10 @@ void spec_multimap2(void)
 	sp_assert_equal_i(0, multimap_add(mm, "temp123", "value11"));
 
 	// Insert a couple more for fun
-	sp_assert_equal_i(0, multimap_add(mm, "temp", "value13"));
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value13 unlucky 13..... just need some extra chars to test for buffer overflows"));
 	sp_assert_equal_i(0, multimap_add(mm, "temp", "value14"));
 
-	/* assert */
+	/* /1* assert *1/ */
 	sp_assert_equal_i(3, multimap_get_count(mm, "test"));
 	sp_assert_equal_i(14, multimap_get_count(mm, "temp"));
 	sp_assert_equal_i(11, multimap_get_count(mm, "temp123"));
@@ -110,7 +121,7 @@ void spec_multimap2(void)
 	sp_assert_equal_s(vector_get(v2, 9), "value10");
 	sp_assert_equal_s(vector_get(v2, 10), "value11");
 	sp_assert_equal_s(vector_get(v2, 11), "value12");
-	sp_assert_equal_s(vector_get(v2, 12), "value13");
+	sp_assert_equal_s(vector_get(v2, 12), "value13 unlucky 13..... just need some extra chars to test for buffer overflows");
 	sp_assert_equal_s(vector_get(v2, 13), "value14");
 
 	vector* v3 = multimap_get(mm, "temp123");
@@ -129,6 +140,24 @@ void spec_multimap2(void)
 	// Index out of bounds returns null
 	sp_assert_equal_i((long)multimap_get(mm, "notfound"), (long)NULL);
 	sp_assert_equal_i(multimap_get_count(mm, "notfound"), 0);
+
+	/* clean */
+	multimap_free(mm);
+}
+
+void spec_multimap4(void)
+{
+	/* arrange */
+	multimap* mm = malloc(sizeof(multimap));
+	multimap_init(mm);
+
+	/* act */
+	sp_assert_equal_i(0, multimap_add(mm, "temp", "value1"));
+	sp_assert_equal_i(0, multimap_add(mm, "temp", NULL));
+
+	vector* v1 = multimap_get(mm, "temp");
+	sp_assert_equal_s(vector_get(v1, 0), "value1");
+	sp_assert_equal_s(vector_get(v1, 1), "");
 
 	/* clean */
 	multimap_free(mm);

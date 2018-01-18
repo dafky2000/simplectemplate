@@ -14,97 +14,96 @@ void vector_free(vector* v);
 
 void spec_vector1(void)
 {
+	unsigned int capacity = 10;
+	unsigned int size = capacity * 30 + 1;
+
 	vector* v = malloc(sizeof(vector));
 	sp_assert_equal_i(0, vector_init(v, 10));
 	sp_assert_equal_i(0, v->size);
 
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test"));
-	sp_assert_equal_i(1, v->size);
-
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test2"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test3"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test4"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test5"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test6"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test7"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test8"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test9"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test10"));
-	sp_assert_equal_i(10, v->size);
-
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test11"));
-	sp_assert_equal_i(11, v->size);
-
-	vector_free(v);
-}
-
-void spec_vector2(void)
-{
-	vector* v = malloc(sizeof(vector));
-	sp_assert_equal_i(0, vector_init(v, 10));
-
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test01"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test02"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test03"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test04"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test05"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test06"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test07"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test08"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test09"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test10"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test11"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test12"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test13"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test14"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test15"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test16"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test17"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test18"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test19"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test20"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test21"));
-	sp_assert_equal_i(21, v->size);
+	const char* static_text = "text and more text so we can check for buffer overflow ";
+	unsigned int text_len = strlen(static_text);
 
 	unsigned int i = 0;
-	for(; i < v->size; ++i) {
-		char cmpto[7];
-		memset(cmpto, 0, 7);
-		sprintf(cmpto, "test%02d", i+1);
+	for(i = 0; i < size; ++i) {
+		char* text = malloc(text_len + 3 + 1);
+		sprintf(text, "%s%03d", static_text, i);
+		sp_assert_equal_i(0, vector_push_back(v, text));
+	}
 
-		char* cur = *(v->data) + i * sizeof(void*);
-		sp_assert_equal_s(cmpto, cur);
+	sp_assert_equal_i(v->size, size);
+	sp_assert_equal_i(v->capacity, size/10*10+10);
+
+	for(i = 0; i < v->size; ++i) {
+		char* text = malloc(text_len + 3 + 1);
+		sprintf(text, "%s%03d", static_text, i);
+
+		sp_assert_equal_s(vector_get(v, i), text);
+
+		free(text);
 	}
 
 	vector_free(v);
 }
 
-void spec_vector3(void)
+void spec_my_test_function(void)
 {
-	vector* v = malloc(sizeof(vector));
-	sp_assert_equal_i(0, vector_init(v, 10));
-	sp_assert_equal_i(0, v->size);
+	/* unsigned int capacity = 3; */
 
-	vector* v2 = malloc(sizeof(vector));
-	sp_assert_equal_i(0, vector_init(v2, 10));
-	sp_assert_equal_i(0, v2->size);
+	/* void** container = malloc(sizeof(void*)); */
+	/* void** elems = malloc(capacity * sizeof(void*)); */
+	/* memset(elems, 0, capacity * sizeof(void*)); */
 
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test2"));
-	sp_assert_equal_i(0, vector_push_back(v, (char*)"test3"));
+	/* *container = elems; */
 
-	sp_assert_equal_i(0, vector_push_back(v2, (char*)"test4"));
-	sp_assert_equal_i(0, vector_push_back(v2, (char*)"test5"));
+	/* void* new_elems = realloc(elems, (capacity + 1) * sizeof(void*)); */
+	/* *container = new_elems; */
+	/* capacity++; */
 
-	sp_assert_equal_i(3, v->size);
-	sp_assert_equal_i(2, v2->size);
+	/* elems = *container; */
 
-	sp_assert_equal_s(vector_get(v, 2), "test3");
-	sp_assert_equal_s(vector_get(v2, 1), "test5");
+	/* const char* static_text = "text and more text so we can check for buffer overflow "; */
+	/* unsigned int text_len = strlen(static_text); */
+	/* void* next_loc = NULL; */
+	/* unsigned int i = 0; */
+	/* for(i = 0; i < capacity; ++i) { */
+	/* 	next_loc = &elems[i]; */
 
-	// Index out of bounds returns null
-	sp_assert_equal_i((long)vector_get(v2, 3), (long)NULL);
+	/* 	/1* printf("========================\n"); *1/ */
+	/* 	/1* printf("=== CURRENT INDEX %02d ===\n", i); *1/ */
+	/* 	/1* printf("========================\n"); *1/ */
+	/* 	/1* printf("container = %p\n", container); *1/ */
+	/* 	/1* printf("*container = %p\n", *container); *1/ */
+	/* 	/1* printf("elems = %p\n", elems); *1/ */
+	/* 	/1* printf("next_loc = %p\n", next_loc); *1/ */
+	/* 	/1* printf("*next_loc = %lu\n", *next_loc); *1/ */
+	/* 	/1* printf("elems[%d] = %lu\n", i, elems[i]); *1/ */
 
-	vector_free(v);
-	vector_free(v2);
+	/* 	char* text = malloc(text_len + 2 + 1); */
+	/* 	memset(text, 0, text_len + 2 + 1); */
+	/* 	sprintf(text, "%s%02d", static_text, i); */
+	/* 	printf("text = %p\n", text); */
+	/* 	printf("next_loc = %p\n", next_loc); */
+	/* 	printf("elems[%d] = %p\n", i, &elems[i]); */
+	/* 	elems[i] = text; */
+
+	/* 	printf("=======================\n"); */
+	/* 	/1* printf("text: %s\n", text); *1/ */
+	/* 	printf("next_loc = %p\n", next_loc); */
+	/* 	printf("elems[%d] = %p\n", i, &elems[i]); */
+	/* } */
+
+	/* printf("=======================\n"); */
+	/* printf("=======================\n"); */
+	/* printf("=======================\n"); */
+	/* for(i = 0; i < capacity; ++i) { */
+	/* 	next_loc = elems[i]; */
+	/* 	printf("text: %s\n", (char*)next_loc); */
+	/* 	free(next_loc); */
+	/* } */
+
+	/* free(*container); */
+	/* free(container); */
+	/* /1* free(elems); *1/ */
+	/* /1* free(text1); *1/ */
 }
