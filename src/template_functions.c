@@ -494,13 +494,7 @@ STATIC char* get_variable(const char* inside_placeholder, renderoptions options)
 }
 
 char* my_render_template(const char* template_data, unsigned long len, const char* data[], renderoptions options) {
-	const char* keys[len];
-	const char* values[len];
 	unsigned long i;
-	for(i = 0; i < len; i++) {
-		keys[i] = (char *)data[i*2];
-		values[i] = (char *)data[i*2+1];
-	}
 
 	multimap* mm = malloc(sizeof(multimap));
 	multimap_init(mm);
@@ -536,15 +530,11 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 			// Copy the separated data to the data
 			data = malloc(strlen(data_separated) + 1);
 			strcpy(data, data_separated);
-
-			/* printf("Element '%s' has condition separator, value = '%s'\n", matched_copy, data); */
 		}
 
 		// If we start with a condition
 		if(strstr(matched_copy, options.placeholder_cond_open_prefix) == matched_copy) {
 			is_condition_pre = 1;
-
-			/* printf("Element '%s' has condition prefix at (%u)\n", matched_copy, (unsigned)matched_start); */
 
 			// 1) Get the closing element {{/data}}
 			unsigned long closing_len =
@@ -587,16 +577,12 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 			}
 		}
 
-		/* if(data) printf("Data: '%s'\n", data); */
-
 		// Reassemble the entire placeholder and replace it
-		/* printf("match_len: '%u'\n", match_len); */
 		char toreplace[strlen(options.placeholder_open) + match_len + strlen(options.placeholder_close) + 1];
 		sprintf(toreplace, "%s%.*s%s",
 			options.placeholder_open,
 			(unsigned int)match_len, matched_start,
 			options.placeholder_close);
-		/* printf("toreplace: '%s'\n", toreplace); */
 
 		char* startofkey = matched_copy;
 		if(is_condition_pre) {
@@ -605,104 +591,32 @@ char* my_render_template(const char* template_data, unsigned long len, const cha
 
 		char* actual_variable = get_variable(startofkey, options);
 
-		// Get the token value from the input data
-		unsigned int i = 0;
-		for(; i < len; ++i) {
-			unsigned int keylen = strlen(keys[i]);
-			char key[keylen + 1];
-			strcpy(key, keys[i]);
-			/* printf("key: '%s'\n", key); */
+		// Do the replacement
+		char* replaced = NULL;
+		vector* v = multimap_get(mm, actual_variable);
+		if(v && v->size) {
+			char* value = vector_get(v, 0);
 
-			int cmp_res = strcmp(actual_variable, key);
-			if(cmp_res == 0) {
-				/* printf("FOUND\n"); */
-				char* replaced;
+			if(value && strlen(value)) {
 				if(data) {
-					/* printf("HAVE DATA\n"); */
-					if(values[i] && strlen(values[i])) {
-						/* printf("TRUE VALUE\n"); */
-						replaced = str_replace(output, toreplace, data);
-					} else {
-						/* printf("FALSE VALUE\n"); */
-						replaced = str_replace(output, toreplace, "");
-					}
+					replaced = str_replace(output, toreplace, data);
 				} else {
-					/* printf("SUB VALUE\n"); */
-					replaced = str_replace(output, toreplace, values[i]);
+					replaced = str_replace(output, toreplace, value);
 				}
-
-				free(output);
-				output = replaced;
-				break;
 			}
 		}
 
-		if(data) free(data);
-		if(actual_variable) free(actual_variable);
+		if(!replaced) {
+			replaced = str_replace(output, toreplace, "");
+		}
 
-		// If the key wasn't found
-		if(i >= len) {
-			char* replaced = str_replace(output, toreplace, "");
+		if(replaced) {
 			free(output);
 			output = replaced;
 		}
 
-		/***********************************************/
-		/***********************************************/
-		/***********************************************/
-
-		/* char* replaced = NULL; */
-		/* vector* v = multimap_get(mm, actual_variable); */
-		/* if(v && v->size) { */
-		/* 	char* value = vector_get(v, 0); */
-
-		/* 	/1* printf("FOUND\n"); *1/ */
-		/* 	if(data) { */
-		/* 		if(value && strlen(value)) { */
-		/* 			replaced = str_replace(output, toreplace, data); */
-		/* 		} */
-		/* 	} else { */
-		/* 		replaced = str_replace(output, toreplace, value); */
-		/* 	} */
-		/* } */
-
-		/* if(!replaced) { */
-		/* 	replaced = str_replace(output, toreplace, ""); */
-		/* } */
-
-		/* if(replaced) { */
-		/* 	free(output); */
-		/* 	output = replaced; */
-		/* } */
-
-		/* if(data) free(data); */
-		/* if(actual_variable) free(actual_variable); */
-
-		/***********************************************/
-		/***********************************************/
-		/***********************************************/
-
-		/* char* replaced = NULL; */
-		/* vector* v = multimap_get(mm, actual_variable); */
-		/* if(v && v->size) { */
-		/* 	char* value = vector_get(v, 0); */
-		/* 	printf("Vector %s found, using value '%s'\n", actual_variable, value); */
-		/* 	/1* if(value && strlen(value)) { *1/ */
-		/* 	/1* 	replaced = str_replace(output, toreplace, value); *1/ */
-		/* 	/1* } *1/ */
-		/* } */
-
-		/* if(!replaced) { */
-		/* 	replaced = str_replace(output, toreplace, ""); */
-		/* } */
-
-		/* if(replaced) { */
-		/* 	free(output); */
-		/* 	output = replaced; */
-		/* } */
-
-		/* if(data) free(data); */
-		/* if(actual_variable) free(actual_variable); */
+		if(data) free(data);
+		if(actual_variable) free(actual_variable);
 	}
 
 	multimap_free(mm);
