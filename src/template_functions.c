@@ -183,7 +183,7 @@ STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
 
 		// Add the value to the vector
 		if(vector_push_back(mm->data, value_copy) != 0) {
-			free(value_copy);
+			free(value_copy); /* LCOV_EXCL_LINE */
 			return -1; /* LCOV_EXCL_LINE */
 		}
 
@@ -196,7 +196,7 @@ STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
 			if(strcmp(current->key, key) == 0) {
 				// Add the value to the vector
 				if(vector_push_back(current->data, value_copy) != 0) {
-					free(value_copy);
+					free(value_copy); /* LCOV_EXCL_LINE */
 					return -1; /* LCOV_EXCL_LINE */
 				}
 
@@ -212,7 +212,7 @@ STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
 		multimap* new_multimap = malloc(sizeof(multimap));
 		// Out of memory
 		if(multimap_init(new_multimap) != 0) {
-			free(value_copy);
+			free(value_copy); /* LCOV_EXCL_LINE */
 			return -1; /* LCOV_EXCL_LINE */
 		}
 
@@ -220,7 +220,7 @@ STATIC int multimap_add(multimap* mm, const char* key, const char* value) {
 
 		// Add the value to the vector
 		if(vector_push_back(new_multimap->data, value_copy) != 0) {
-			free(value_copy);
+			free(value_copy); /* LCOV_EXCL_LINE */
 			return -1; /* LCOV_EXCL_LINE */
 		}
 

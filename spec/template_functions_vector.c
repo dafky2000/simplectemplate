@@ -14,6 +14,18 @@ void vector_free(vector* v);
 
 void spec_vector1(void)
 {
+	vector* v = malloc(sizeof(vector));
+	sp_assert_equal_i(0, vector_init(v, 10));
+	sp_assert_equal_i(0, v->size);
+
+	char* oob = vector_get(v, 0);
+	sp_assert_equal_i((unsigned long)NULL, (unsigned long)oob);
+
+	vector_free(v);
+}
+
+void spec_vector2(void)
+{
 	unsigned int capacity = 10;
 	unsigned int size = capacity * 30 + 1;
 

@@ -27,7 +27,7 @@ void spec_multimap1(void)
 {
 	/* arrange */
 	multimap* mm = malloc(sizeof(multimap));
-	multimap_init(mm);
+	sp_assert_equal_i(0, multimap_init(mm));
 
 	/* clean */
 	multimap_free(mm);
@@ -37,11 +37,11 @@ void spec_multimap2(void)
 {
 	/* arrange */
 	multimap* mm = malloc(sizeof(multimap));
-	multimap_init(mm);
+	sp_assert_equal_i(0, multimap_init(mm));
 
 	/* act */
-	multimap_add(mm, "test", "value1");
-	multimap_add(mm, "test", "value2");
+	sp_assert_equal_i(0, multimap_add(mm, "test", "value1"));
+	sp_assert_equal_i(0, multimap_add(mm, "test", "value2"));
 
 	/* assert */
 	sp_assert_equal_s((char*)mm->key, "test");
@@ -60,7 +60,7 @@ void spec_multimap3(void)
 {
 	/* arrange */
 	multimap* mm = malloc(sizeof(multimap));
-	multimap_init(mm);
+	sp_assert_equal_i(0, multimap_init(mm));
 
 	/* act */
 	sp_assert_equal_i(0, multimap_add(mm, "test", "value1"));
@@ -149,7 +149,7 @@ void spec_multimap4(void)
 {
 	/* arrange */
 	multimap* mm = malloc(sizeof(multimap));
-	multimap_init(mm);
+	sp_assert_equal_i(0, multimap_init(mm));
 
 	/* act */
 	sp_assert_equal_i(0, multimap_add(mm, "temp", "value1"));
