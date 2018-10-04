@@ -1,0 +1,4 @@
+title:A sub menu
+layout:_sub_menu
+---
+<p>This is a sub-menu</p>

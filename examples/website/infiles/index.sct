@@ -1,4 +1,4 @@
-title:My simplec web site
+title:Home
 layout:default
 ---
-<p>This is the index page</p>
+<p>Hello, World</p>

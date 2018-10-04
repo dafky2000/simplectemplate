@@ -1,2 +1,29 @@
-html files in this directory will get overwritten when src/simplecgen
-is run
+simplecgen uses the simplectemplate
+<https://github.com/dafky2000/simplectemplate> library to generate a
+web site.
+
+The template library is included (If you like this project, please
+remember to also star the simplectemplate library repository).
+
+To build simplecgen:
+
+    mkdir build
+    cd build
+    cmake ../src
+    make
+
+simplecgen will look for the config file (simplecgen.conf) in the
+directory from which you are running simplecgen.
+
+To generate the sample site:
+
+    From the top level directory
+
+        ./build/simplecgen (it will read ./templates and ./infiles for the data)
+
+You can then preview the site by opening index.html in your web browser.
+
+Some of the web site design was done by Elliot Alexander
+<https://github.com/escottalexander>
+
+LICENSE: GNU GPL3

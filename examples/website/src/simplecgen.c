@@ -1,47 +1,35 @@
 /*
  * simplecgen.c: generates html files using the simplectemplate library
  *
- * Copyright 2017 Andy <andy400-dev@yahoo.com>
+ * Copyright (C) 2017-2018  Andy Alt (andy400-dev@yahoo.com)
  *
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-*/
+ * This file is part of simplecgen <https://github.com/theimpossibleastronaut/simplecgen>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ *
+ *
+ */
 
-#include "config.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
 #include <libgen.h>
 #include <dirent.h>
-#include "template_functions.h"
+#include <unistd.h>
+#include <limits.h>
 
-#ifndef VERSION
-  #define VERSION "unversioned"
-#endif
-
-#define LINE_LEN_MAX 80
-#define FILENAME_LEN_MAX 248
-
-void
-del_char_shift_left (char *str, char c);
-
-int
-trim (char *str);
-
-void
-add_newline (char *str);
+#include "simplecgen.h"
+#include "utils.h"
 
 int main(int argc, char **argv)
 {
@@ -59,6 +47,33 @@ int main(int argc, char **argv)
     }
   }
 
+  char *bin_dir = dirname (argv[0]);
+
+  char cfg_file[PATH_MAX + 1];
+  // Not configurable yet. Look for the config in the directory where
+  // simplecgen is run from.
+  sprintf (cfg_file, "./", bin_dir, CONFIG_FILE);
+
+  struct_cfg *cfgopts = calloc (sizeof (struct_cfg), 1);
+
+  // char site_title[120];
+
+#ifdef DEBUG
+  PRINT_DEBUG ("config file = %s\n", cfg_file);
+#endif
+
+  /* As more config options are added, it will be easier to pass
+   * a single structure, as opposed to all the different config
+   * variables
+   */
+  parse_config  (cfg_file, cfgopts);
+
+#ifdef DEBUG
+  PRINT_DEBUG ("after parsing, site_title is '%s'\n", cfgopts->site_title);
+  PRINT_DEBUG ("after parsing, site_description is '%s'\n", cfgopts->site_description);
+  PRINT_DEBUG ("after parsing, repo_URL is '%s'\n", cfgopts->repo_URL);
+#endif
+
   FILE *tail_fp;
   if ((tail_fp = fopen ("templates/tail.html", "r")) == NULL)
   {
@@ -71,7 +86,7 @@ int main(int argc, char **argv)
   rewind (tail_fp);
 
   char *output_tail;
-  if ((output_tail = calloc (tail_size + 1, 1)) == NULL)
+  if ((output_tail = calloc (tail_size + 1, sizeof (char))) == NULL)
   {
     printf ("Unable to allocate memory\n");
     return 1;
@@ -104,6 +119,10 @@ int main(int argc, char **argv)
 
     char input_file[FILENAME_LEN_MAX + 1];
     sprintf (input_file, "infiles/%s", dir_entry->d_name);
+
+    char infile_URL[FILENAME_LEN_MAX];
+    sprintf (infile_URL, "%s/%s", cfgopts->repo_URL, dir_entry->d_name);
+
     printf ("processing %s\n", input_file);
 
     FILE *fp = fopen (input_file, "r");
@@ -130,8 +149,7 @@ int main(int argc, char **argv)
       return 1;
     }
 
-    del_char_shift_left (title, ':');
-
+    del_char (&title, ':');
     trim (title);
 
     /* get the layout line */
@@ -152,8 +170,21 @@ int main(int argc, char **argv)
       return 1;
     }
 
-    del_char_shift_left (layout, ':');
+#ifdef DEBUG
+  PRINT_DEBUG ("Layout: '%s'\n", layout);
+#endif
+
+    del_char (&layout, ':');
+
+#ifdef DEBUG
+  PRINT_DEBUG ("Layout: '%s'\n", layout);
+#endif
+
     trim (layout);
+
+#ifdef DEBUG
+  PRINT_DEBUG ("Layout: '%s'\n", layout);
+#endif
 
     /* Go back to the beginning of the file */
     if (fseek (fp, 0, SEEK_END) != 0)
@@ -182,8 +213,8 @@ int main(int argc, char **argv)
     }
 
     /* find the first ocurrence of "-" */
-    char *body;
-    body = strchr (contents, '-');
+    // char *body;
+    char *body = strchr (contents, '-');
 
     if (body == NULL)
     {
@@ -194,7 +225,7 @@ int main(int argc, char **argv)
     }
 
     while (body[0] == '-' || body[0] == '\n')
-      del_char_shift_left (body, body[0]);
+      del_char (&body, body[0]);
 
     len = strlen (body) - 1;
 
@@ -205,54 +236,68 @@ int main(int argc, char **argv)
       len--;
     }
 
-    /* Because the head and layout templates are split now, this is not used
-     *
-    const char *data[] = {
-      "title", title,
-      "body", body
-    };
-    *
-    */
+    char fb[FILENAME_LEN_MAX];
+
+    /* truncate the .sct extension */
+    input_file[strlen (input_file) - 4] = '\0';
+    strcpy (fb, basename (input_file));
+
+    /* sub_title will appear after 'page title | ' in the title bar */
+    char sub_title[LINE_LEN_MAX];
+
+    if (strcmp (fb, "index") != 0)
+      strcpy (sub_title, cfgopts->site_title);
+    else
+      strcpy (sub_title, cfgopts->site_description);
+
+#ifdef DEBUG
+PRINT_DEBUG ("basename is '%s' at L%d\n", fb, __LINE__);
+PRINT_DEBUG ("sub_title is '%s' at L%d\n", sub_title, __LINE__);
+#endif
 
     const char *title_data[] = {
-      "title", title
+      "title", title,
+      "sub_title", sub_title
     };
 
     const char *body_data[] = {
-      "body", body
+      "body", body,
+      "infile_URL", infile_URL
     };
 
-    char layout_template[FILENAME_LEN_MAX];
+    char layout_template[FILENAME_LEN_MAX] = "";
     sprintf (layout_template, "templates/%s.html", layout);
 
     FILE *fp_layout;
     if ((fp_layout = fopen (layout_template, "r")) == NULL)
     {
-      printf ("  :Error: layout: %s not found\n", layout_template);
+      printf ("  :Error: layout: %s not found at %d\n", layout_template, __LINE__);
       return 1;
     }
 
-    char *output_head;
-    char *output_layout;
+    /* FIXME: This is a temporary fix to try to solve a malloc error
+     * @escottalexander is having on his os x system.
+     */
+    char output_head[2000000];
+    char output_layout[2000000];
 
     /* FIXME: need a check to make sure the directory and file exists
      * add more flexibility so the user can change this (hint: config file)
      */
-    output_head = render_template_file ("templates/head.html", 1, title_data);
+    char *output_head_tmp = render_template_file ("templates/head.html", 2, title_data);
+    strcpy (output_head, output_head_tmp);
     add_newline (output_head);
 
-    output_layout = render_template_file (layout_template, 1, body_data);
+    char *output_layout_tmp = render_template_file (layout_template, 2, body_data);
+    strcpy (output_layout, output_layout_tmp);
     add_newline (output_layout);
 
     char output[strlen (output_head) + strlen (output_layout) +
         tail_size + 1];
     sprintf (output, "%s%s%s", output_head, output_layout, output_tail);
 
-    /* truncate the .sct extension */
-    input_file[strlen (input_file) - 4] = '\0';
-
     char dest_file[FILENAME_LEN_MAX + 1];
-    sprintf (dest_file, "%s.html", basename (input_file));
+    sprintf (dest_file, "%s.html", fb);
 
     if ((fp = fopen (dest_file, "w")) == NULL)
     {
@@ -269,10 +314,11 @@ int main(int argc, char **argv)
     }
 
     free (contents);
-    free (output_head);
-    free (output_layout);
-
+    free (output_head_tmp);
+    free (output_layout_tmp);
   }
+
+  free (cfgopts);
   free (output_tail);
 
   if (closedir (infiles_dir) != 0)
@@ -282,76 +328,4 @@ int main(int argc, char **argv)
   }
 
   return 0;
-}
-
-/**
- * Erases characters from the beginning of a string
- * (i.e. shifts the remaining string to the left
- */
-void del_char_shift_left (char *str, char c)
-{
-  static int c_count;
-  c_count = 0;
-
-  /* count how many instances of 'c' */
-  while (str[c_count] == c)
-    c_count++;
-
-  /* if no instances of 'c' were found... */
-  if (!c_count)
-    return;
-
-  static int len;
-  len = strlen (str);
-  static int pos;
-
-  for (pos = 0; pos < len - c_count; pos++)
-    str[pos] = str[pos + c_count];
-
-  str[len - c_count] = '\0';
-
-  return;
-}
-
-/**
- * trim: remove trailing blanks, tabs, newlines
- * Adapted from The ANSI C Programming Language, 2nd Edition (p. 65)
- * Brian W. Kernighan & Dennis M. Ritchie
- */
-int
-trim (char *str)
-{
-  static int n;
-
-  n = strlen (str);
-
-  char c;
-  c = str[n];
-
-  if (c != '\0')
-  {
-    printf ("null terminator not found\n");
-  }
-
-  n--;
-  c = str[n];
-
-  while (c == ' ' || c == '\t' || c == '\n' || c == EOF)
-  {
-    str[n] = '\0';
-    n--;
-    c = str[n];
-  }
-
-  return n;
-}
-
-void
-add_newline (char *str)
-{
-  static size_t len;
-  len = strlen (str);
-  str = realloc (str, len + 2);
-  str[len] = '\n';
-  str[len + 1] = '\0';
 }
