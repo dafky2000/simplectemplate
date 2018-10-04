@@ -6,4 +6,6 @@ add_definitions("-DPACKAGE_BUGREPORT=\"andy400-dev@yahoo.com\"")
 
 add_definitions("-DVERSION=\"0.1.02-dev\"")
 
+set(CMAKE_CC_FLAGS "-Wall")
+
 add_executable(${PROJECT} simplecgen.c utils.c template_functions.c)
