@@ -30,14 +30,3 @@ SPECK_LIBS = $(OBJECTS) $(LDLIBS)
 test: $(SPECK) $(OBJECTS) $(SUITES)
 	valgrind --leak-check=full --error-exitcode=1 --errors-for-leak-kinds=all $(SPECK)
 	rm *.gc*
-
-clean:
-	-rm -f *.o      # Build files
-	-rm -f */*.o    # Build files
-	-rm -f *.so     # Build files
-	-rm -f */*.so   # Build files
-	-rm -f *.gc*    # gcov (for cpp-coveralls)
-	-rm -f */*.gc*  # gcov (for cpp-coveralls)
-	-rm -f vgcore.* # Valgrind
-	-rm -f $(TARGET)
-	-cd speck && make clean
