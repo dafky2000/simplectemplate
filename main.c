@@ -30,7 +30,8 @@ int main () {
 		"ph1", "awesome",
 		"ph2", " is running",
 	};
-	char* rendered = render_template_file("spec/templates/basic.txt", 2, data);
+	int data_key_count = SCT_ARRAY_SIZE(data)/2;
+	char* rendered = render_template_file("spec/templates/basic.txt", data_key_count, data);
 
 	printf("%s\n", rendered);
 

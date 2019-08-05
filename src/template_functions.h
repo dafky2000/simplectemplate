@@ -30,6 +30,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#define SCT_ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+
 struct RenderOptions {
 	const char* placeholder_open;       // "{{"
 	const char* placeholder_close;      // "}}"

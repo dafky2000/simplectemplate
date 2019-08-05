@@ -134,7 +134,8 @@ const char *data[] = {
 };
 
 // Render the template and replace the template variables
-char *template = render_template_file("./templates/index.html", 2, data);
+int data_key_count = SCT_ARRAY_SIZE(data)/2;
+char *template = render_template_file("./templates/index.html", data_key_count, data);
 printf("%s\n", template);
 ```
 
