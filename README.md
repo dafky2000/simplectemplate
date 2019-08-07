@@ -49,7 +49,7 @@ Say you want to generate an HTML file from the template below in C:
 </html>
 ```
 
-While libraries like https://gitlab.com/jobol/mustach/ exist for this type of task, there are simply not simple enough! The Mustache C implementation requires than you submit the data via JSON which opens up another can of worms in C. Not natively supported in C and the available libraries are not easy to use at all. With `simplectemplate` you submit your data as string arrays.
+While libraries like [https://gitlab.com/jobol/mustach/](https://gitlab.com/jobol/mustach/) exist for this type of task, there are simply not simple enough! The Mustache C implementation requires than you submit the data via JSON which opens up another can of worms in C. Not natively supported in C and the available libraries are not easy to use at all. With `simplectemplate` you submit your data as string arrays.
 
 Example code:
 
@@ -101,7 +101,8 @@ Renders to:
 </html>
 ```
 
-# RenderOptions - Custom opening/closing/condition prefix, condition separator, and end-block prefixes...
+# RenderOptions
+Custom opening/closing/condition prefix, condition separator, and end-block prefixes...
 
 ```c
 const char *data[] = {
@@ -164,3 +165,7 @@ Outputs:
   </body>
 </html>
 ```
+
+# Example Implementations
+
+[simplecgen](https://gitlab.com/andy5995/simplecgen/) - Renders html templates from frontmatter-like data files
